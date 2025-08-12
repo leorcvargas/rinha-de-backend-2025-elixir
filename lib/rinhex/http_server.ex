@@ -3,7 +3,7 @@ defmodule RinhexWeb.HttpServer do
 
   alias Rinhex.{LocalBuffer, WorkerController}
 
-  @post_payments_body_length 512
+  @post_payments_body_length 128
 
   def init(opts), do: opts
 
