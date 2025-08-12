@@ -10,7 +10,7 @@ defmodule Rinhex.Semaphore do
   @event_report_error :report_error
   @internal_in_ms 5000
 
-  def start_link(state \\ %{service: :default}) do
+  def start_link(state \\ %{service: :default}) when is_map(state) do
     GenServer.start_link(__MODULE__, state, name: __MODULE__)
   end
 

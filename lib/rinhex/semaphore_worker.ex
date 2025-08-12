@@ -6,7 +6,7 @@ defmodule Rinhex.SemaphoreWorker do
 
   @event_work :work
 
-  def start_link(state \\ %{}) when is_map(state) do
+  def start_link(state \\ []) do
     GenServer.start_link(__MODULE__, state, name: __MODULE__)
   end
 
