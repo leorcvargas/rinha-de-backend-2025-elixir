@@ -1,5 +1,5 @@
 x-service-templates:
-  api: &api
+  base: &base
     build:
       context: ../../..
     volumes:
@@ -7,11 +7,6 @@ x-service-templates:
     networks:
       - payment-processor
       - rinhex
-    deploy:
-      resources:
-        limits:
-          cpus: "0.35" # * 2 = 0.7cpu
-          memory: "107MB" # * 3 = 321MB
 
 services:
   loadbalancer:
@@ -33,28 +28,14 @@ services:
           cpus: "0.4"
           memory: "29MB"
 
-  # loadbalancer:
-  #   image: haproxytech/haproxy-debian:3.2
-  #   ports:
-  #     - 9999:80
-  #   volumes:
-  #     - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:rw
-  #     - sockets:/tmp/rinhex/:rw
-  #   networks:
-  #     - rinhex
-  #   # deploy:
-  #   #   resources:
-  #   #     limits:
-  #   #       cpus: "0.3"
-  #   #       memory: "29MB"
-  #   depends_on:
-  #     - api1
-  #     - api2
-  #     - worker
-
   api1:
-    <<: *api
+    <<: *base
     hostname: api1
+    deploy:
+      resources:
+        limits:
+          cpus: "0.35"
+          memory: "107MB"
     environment:
       APPLICATION_MODE: "api"
       ERL_MAX_PORTS: 4500
@@ -64,8 +45,13 @@ services:
       UDS_SOCKET: "/tmp/rinhex/api1.sock"
 
   api2:
-    <<: *api
+    <<: *base
     hostname: api2
+    deploy:
+      resources:
+        limits:
+          cpus: "0.35"
+          memory: "107MB"
     environment:
       APPLICATION_MODE: "api"
       ERL_MAX_PORTS: 4500
@@ -75,7 +61,7 @@ services:
       UDS_SOCKET: "/tmp/rinhex/api2.sock"
 
   worker:
-    <<: *api
+    <<: *base
     hostname: worker
     deploy:
       resources:
