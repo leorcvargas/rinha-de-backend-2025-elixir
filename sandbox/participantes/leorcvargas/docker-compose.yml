@@ -1,0 +1,99 @@
+x-service-templates:
+  api: &api
+    build:
+      context: ../../..
+    volumes:
+      - sockets:/tmp/rinhex/:rw
+    networks:
+      - payment-processor
+      - rinhex
+    deploy:
+      resources:
+        limits:
+          cpus: "0.35" # * 2 = 0.7cpu
+          memory: "107MB" # * 3 = 321MB
+
+services:
+  loadbalancer:
+    image: openresty/openresty:bullseye
+    ports:
+      - "9999:80"
+    volumes:
+      - ./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:rw
+      - sockets:/tmp/rinhex/:rw
+    depends_on:
+      - api1
+      - api2
+      - worker
+    networks:
+      - rinhex
+    deploy:
+      resources:
+        limits:
+          cpus: "0.4"
+          memory: "29MB"
+
+  # loadbalancer:
+  #   image: haproxytech/haproxy-debian:3.2
+  #   ports:
+  #     - 9999:80
+  #   volumes:
+  #     - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:rw
+  #     - sockets:/tmp/rinhex/:rw
+  #   networks:
+  #     - rinhex
+  #   # deploy:
+  #   #   resources:
+  #   #     limits:
+  #   #       cpus: "0.3"
+  #   #       memory: "29MB"
+  #   depends_on:
+  #     - api1
+  #     - api2
+  #     - worker
+
+  api1:
+    <<: *api
+    hostname: api1
+    environment:
+      APPLICATION_MODE: "api"
+      ERL_MAX_PORTS: 4500
+      PAYMENT_PROCESSOR_DEFAULT_URL: http://payment-processor-default:8080
+      PAYMENT_PROCESSOR_FALLBACK_URL: http://payment-processor-fallback:8080
+      ERL_FLAGS: "+S 1:1 +sbwt none +sbwtdcpu none +sbwtdio none +L"
+      UDS_SOCKET: "/tmp/rinhex/api1.sock"
+
+  api2:
+    <<: *api
+    hostname: api2
+    environment:
+      APPLICATION_MODE: "api"
+      ERL_MAX_PORTS: 4500
+      PAYMENT_PROCESSOR_DEFAULT_URL: http://payment-processor-default:8080
+      PAYMENT_PROCESSOR_FALLBACK_URL: http://payment-processor-fallback:8080
+      ERL_FLAGS: "+S 1:1 +sbwt none +sbwtdcpu none +sbwtdio none +L"
+      UDS_SOCKET: "/tmp/rinhex/api2.sock"
+
+  worker:
+    <<: *api
+    hostname: worker
+    deploy:
+      resources:
+        limits:
+          cpus: "0.4"
+          memory: "107MB"
+    environment:
+      APPLICATION_MODE: "worker"
+      ERL_MAX_PORTS: 2048
+      PAYMENT_PROCESSOR_DEFAULT_URL: http://payment-processor-default:8080
+      PAYMENT_PROCESSOR_FALLBACK_URL: http://payment-processor-fallback:8080
+      ERL_FLAGS: "+S 1:1 +sbwt none +sbwtdcpu none +sbwtdio none +L"
+
+volumes:
+  sockets:
+
+networks:
+  payment-processor:
+    external: true
+  rinhex:
+    driver: bridge
