@@ -67,7 +67,7 @@ defmodule Rinhex.Semaphore do
   end
 
   def handle_call(@event_get_best_service, _from, state) do
-    {:reply, state.best_service, state}
+    {:reply, state.service, state}
   end
 
   def handle_call(@event_status, _from, state) do

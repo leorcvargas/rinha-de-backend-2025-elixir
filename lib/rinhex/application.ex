@@ -75,7 +75,7 @@ defmodule Rinhex.Application do
             },
             Rinhex.Payments.Queue,
             Rinhex.Payments.WorkerSupervisor,
-            {Rinhex.Semaphore, %{best_service: :default, failing: :none}},
+            {Rinhex.Semaphore, %{service: :default}},
             Rinhex.SemaphoreWorker,
             Rinhex.Storage.Master,
             Rinhex.Storage.Writer,

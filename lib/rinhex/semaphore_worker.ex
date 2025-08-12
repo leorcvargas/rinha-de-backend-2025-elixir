@@ -6,7 +6,7 @@ defmodule Rinhex.SemaphoreWorker do
 
   @event_work :work
 
-  def start_link(state \\ []) do
+  def start_link(state \\ %{}) when is_map(state) do
     GenServer.start_link(__MODULE__, state, name: __MODULE__)
   end
 
@@ -26,8 +26,14 @@ defmodule Rinhex.SemaphoreWorker do
 
     best_service = define_service_by_statuses(default_status, fallback_status)
 
-    Node.list([:this, :visible])
-    |> :erpc.multicall(Semaphore, :set_best_service, [best_service], :infinity)
+    [:this, :visible]
+    |> Node.list()
+    |> :erpc.multicall(
+      Semaphore,
+      :set_best_service,
+      [best_service],
+      :infinity
+    )
 
     {:noreply, state}
   end
