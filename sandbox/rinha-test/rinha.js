@@ -40,7 +40,7 @@ export const options = {
       exec: "checkPaymentsConsistency",
       executor: "constant-vus",
       //startTime: "5s",
-      duration: "70s",
+      duration: "60s",
       vus: "1",
     },
     stage_00: {
@@ -248,21 +248,23 @@ export async function checkPaymentsConsistency() {
         fallbackAdminPaymentsSummary.totalRequests),
   );
 
-  console.log(
-    JSON.stringify(
-      {
-        from,
-        to,
-        now,
+  if (inconsistencies !== 0) {
+    console.log(
+      JSON.stringify(
+        {
+          from,
+          to,
+          now,
 
-        defaultAdminPaymentsSummary,
-        fallbackAdminPaymentsSummary,
-        backendPaymentsSummary,
-      },
-      null,
-      2,
-    ),
-  );
+          defaultAdminPaymentsSummary,
+          fallbackAdminPaymentsSummary,
+          backendPaymentsSummary,
+        },
+        null,
+        2,
+      ),
+    );
+  }
 
   paymentsInconsistencyCounter.add(inconsistencies);
 
