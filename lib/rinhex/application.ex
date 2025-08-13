@@ -93,17 +93,8 @@ defmodule Rinhex.Application do
 
   @impl true
   def prep_stop(_) do
-    final_summary =
-      System.get_env("APPLICATION_MODE")
-      |> case do
-        "api" ->
-          :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [nil, nil], 5_000)
-
-        "worker" ->
-          WorkerController.get_payments_summary(nil, nil)
-      end
-
-    Logger.info("Final summary: #{final_summary}")
+    Logger.info("Sleeping before stopping")
+    Process.sleep(3_000)
   end
 
   def wait_and_chmod!(path, mode, tries \\ 100, sleep_ms \\ 10) do
