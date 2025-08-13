@@ -93,48 +93,31 @@ defmodule Rinhex.Application do
 
   @impl true
   def prep_stop(_) do
-    task =
-      Task.async(fn ->
-        final_summary =
-          System.get_env("APPLICATION_MODE")
-          |> case do
-            "api" ->
-              :erpc.call(
-                :rinhex@worker,
-                WorkerController,
-                :get_payments_summary,
-                [nil, nil],
-                5_000
-              )
+    final_summary =
+      System.get_env("APPLICATION_MODE")
+      |> case do
+        "api" ->
+          :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [nil, nil], 5_000)
 
-            "worker" ->
-              WorkerController.get_payments_summary(nil, nil)
-          end
+        "worker" ->
+          WorkerController.get_payments_summary(nil, nil)
+      end
 
-        Logger.info("Final summary pre sleep: #{final_summary}")
+    Logger.info("Final summary pre sleep: #{final_summary}")
 
-        Process.sleep(1_500)
+    Process.sleep(1_500)
 
-        final_summary =
-          System.get_env("APPLICATION_MODE")
-          |> case do
-            "api" ->
-              :erpc.call(
-                :rinhex@worker,
-                WorkerController,
-                :get_payments_summary,
-                [nil, nil],
-                5_000
-              )
+    final_summary =
+      System.get_env("APPLICATION_MODE")
+      |> case do
+        "api" ->
+          :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [nil, nil], 5_000)
 
-            "worker" ->
-              WorkerController.get_payments_summary(nil, nil)
-          end
+        "worker" ->
+          WorkerController.get_payments_summary(nil, nil)
+      end
 
-        Logger.info("Final summary post sleep: #{final_summary}")
-      end)
-
-    Task.await(task)
+    Logger.info("Final summary post sleep: #{final_summary}")
   end
 
   def wait_and_chmod!(path, mode, tries \\ 100, sleep_ms \\ 10) do
