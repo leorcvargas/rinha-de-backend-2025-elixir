@@ -13,8 +13,8 @@ defmodule Rinhex.Storage.Master do
         :named_table,
         :ordered_set,
         :public,
-        read_concurrency: true,
-        write_concurrency: true
+        read_concurrency: false,
+        write_concurrency: false
       ])
 
     {:ok, table}
