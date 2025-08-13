@@ -58,6 +58,6 @@ defmodule Rinhex.Storage.Writer do
     iso_dt
     |> DateTime.from_iso8601()
     |> then(fn {:ok, dt, 0} -> dt end)
-    |> DateTime.to_unix()
+    |> DateTime.to_unix(:millisecond)
   end
 end
