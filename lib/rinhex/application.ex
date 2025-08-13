@@ -93,8 +93,6 @@ defmodule Rinhex.Application do
 
   @impl true
   def prep_stop(_) do
-    Process.sleep(1_500)
-
     final_summary =
       System.get_env("APPLICATION_MODE")
       |> case do
