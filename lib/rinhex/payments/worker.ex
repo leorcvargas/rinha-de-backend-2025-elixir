@@ -21,6 +21,8 @@ defmodule Rinhex.Payments.Worker do
 
   @impl true
   def handle_info(@event_tick, state) do
+    Logger.info("Work work...")
+
     Queue.take()
     |> process()
     |> next_tick_time_by_result()
