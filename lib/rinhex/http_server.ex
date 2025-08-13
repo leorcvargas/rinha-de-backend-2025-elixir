@@ -11,8 +11,8 @@ defmodule RinhexWeb.HttpServer do
     {:ok, raw_body, conn} =
       read_body(conn, length: @post_payments_body_length, read_length: @post_payments_body_length)
 
-    # LocalBuffer.enqueue(raw_body)
-    WorkerController.enqueue_payment(raw_body)
+    LocalBuffer.enqueue(raw_body)
+    # WorkerController.enqueue_payment(raw_body)
     # :erpc.cast(
     #   :rinhex@worker,
     #   WorkerController,
