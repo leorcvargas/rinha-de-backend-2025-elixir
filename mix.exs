@@ -10,7 +10,12 @@ defmodule Rinhex.MixProject do
       start_permanent: Mix.env() == :prod,
       build_embedded: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      releases: [
+        rinhex: [
+          strip_beams: true
+        ]
+      ]
     ]
   end
 

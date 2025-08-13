@@ -2,7 +2,6 @@ defmodule Rinhex.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
-  alias Rinhex.WorkerController
   require Logger
   use Application
 
@@ -42,16 +41,19 @@ defmodule Rinhex.Application do
             Rinhex.LocalBuffer,
             {
               Bandit,
-              plug: RinhexWeb.HttpServer, scheme: :http, ip: {:local, socket_path}, port: 0
               # http_1_options: [
               # clear_process_dict: false
               # gc_every_n_keepalive_requests: 2
               # gc_every_n_keepalive_requests: 20_000
               # ],
-              # thousand_island_options: [
-              #   num_acceptors: 5,
-              #   num_connections: 1024 * 8
-              # ]
+              plug: RinhexWeb.HttpServer,
+              scheme: :http,
+              ip: {:local, socket_path},
+              port: 0,
+              thousand_island_options: [
+                num_acceptors: 1,
+                num_connections: 1024 * 8
+              ]
             },
             {Task, fn -> wait_and_chmod!(socket_path, 0o777) end}
           ]
@@ -93,17 +95,8 @@ defmodule Rinhex.Application do
 
   @impl true
   def prep_stop(_) do
-    final_summary =
-      System.get_env("APPLICATION_MODE")
-      |> case do
-        "api" ->
-          :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [nil, nil], 5_000)
-
-        "worker" ->
-          WorkerController.get_payments_summary(nil, nil)
-      end
-
-    Logger.info("Final summary: #{final_summary}")
+    Logger.info("Sleeping before stopping")
+    Process.sleep(3_000)
   end
 
   def wait_and_chmod!(path, mode, tries \\ 100, sleep_ms \\ 10) do

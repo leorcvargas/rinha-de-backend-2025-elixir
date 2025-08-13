@@ -1,26 +1,29 @@
 defmodule RinhexWeb.HttpServer do
+  @behaviour Plug
+
   import Plug.Conn
 
   alias Rinhex.{LocalBuffer, WorkerController}
 
-  @post_payments_body_length 512
+  @req_len 128
 
+  @impl true
   def init(opts), do: opts
 
+  @impl true
   def call(%Plug.Conn{method: "POST", path_info: ["payments"]} = conn, _opts) do
+    conn = send_resp(conn, 204, "")
+
     {:ok, raw_body, conn} =
-      read_body(conn, length: @post_payments_body_length, read_length: @post_payments_body_length)
+      read_body(
+        conn,
+        length: @req_len,
+        read_length: @req_len
+      )
 
     LocalBuffer.enqueue(raw_body)
-    # WorkerController.enqueue_payment(raw_body)
-    # :erpc.cast(
-    #   :rinhex@worker,
-    #   WorkerController,
-    #   :enqueue_payment,
-    #   [raw_body]
-    # )
 
-    send_resp(conn, 204, "")
+    conn
   end
 
   def call(%Plug.Conn{method: "GET", path_info: ["payments-summary"]} = conn, _opts) do
