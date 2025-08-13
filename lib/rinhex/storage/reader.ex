@@ -26,17 +26,7 @@ defmodule Rinhex.Storage.Reader do
       query_by_date(from, to)
       |> aggregate_summary()
 
-    # other_summaries =
-    #   Node.list(:visible)
-    #   |> Enum.map(fn node ->
-    #     node
-    #     |> build_name()
-    #     |> GenServer.call({:cross_node_query, {from, to}})
-    #     |> aggregate_summary()
-    #   end)
-
     all_summaries = [local_summary]
-    # ++ other_summaries
 
     all_summaries
     |> Enum.reduce(
