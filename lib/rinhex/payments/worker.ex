@@ -1,5 +1,6 @@
 defmodule Rinhex.Payments.Worker do
   use GenServer
+  require Logger
 
   alias Rinhex.Payments.{ProcessorClient, Queue}
   alias Rinhex.{Semaphore, Storage}
