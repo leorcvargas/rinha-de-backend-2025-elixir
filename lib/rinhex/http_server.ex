@@ -1,5 +1,6 @@
 defmodule RinhexWeb.HttpServer do
   import Plug.Conn
+  require Logger
 
   alias Rinhex.{LocalBuffer, WorkerController}
 
@@ -35,6 +36,9 @@ defmodule RinhexWeb.HttpServer do
     Logger.info("Summary pre sleep: #{summary_json}")
 
     Process.sleep(1_500)
+
+    summary_json =
+      :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [from, to], 5_000)
 
     Logger.info("Summary post sleep: #{summary_json}")
 
