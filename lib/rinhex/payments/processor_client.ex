@@ -2,17 +2,27 @@ defmodule Rinhex.Payments.ProcessorClient do
   alias Req
   require Logger
 
+  @headers [{"Content-Type", "application/json"}]
+  @post_endpoint "/payments"
+  @health_endpoint "/payments/service-health"
+  @payment_json_slice_1 "{\"correlationId\":\""
+  @payment_json_slice_2 "\",\"amount\":"
+  @payment_json_slice_3 ",\"requestedAt\":\""
+  @payment_json_slice_4 "\"}"
+  @field_failing "failing"
+  @field_min_response_time "failing"
+
   def create_payment(
         service,
         {correlation_id, amount, requested_at}
       ) do
-    request_url = "#{url(service)}/payments"
+    request_url = "#{url(service)}#{@post_endpoint}"
 
     finch_request =
       :post
       |> Finch.build(
         request_url,
-        [{"Content-Type", "application/json"}],
+        @headers,
         payment_to_json_iodata({correlation_id, amount, requested_at})
       )
 
@@ -31,12 +41,12 @@ defmodule Rinhex.Payments.ProcessorClient do
   end
 
   def get_service_health(service) do
-    request_url = "#{url(service)}/payments/service-health"
+    request_url = "#{url(service)}#{@health_endpoint}"
 
     :get
     |> Finch.build(
       request_url,
-      [{"Content-Type", "application/json"}]
+      @headers
     )
     |> Finch.request(Rinhex.Finch, receive_timeout: 10_000)
     |> case do
@@ -47,8 +57,8 @@ defmodule Rinhex.Payments.ProcessorClient do
           {:ok, decoded_body} ->
             %{
               service: service,
-              failing: decoded_body["failing"],
-              min_response_time: decoded_body["minResponseTime"]
+              failing: decoded_body[@field_failing],
+              min_response_time: decoded_body[@field_min_response_time]
             }
 
           _ ->
@@ -78,12 +88,12 @@ defmodule Rinhex.Payments.ProcessorClient do
 
   defp payment_to_json_iodata({correlation_id, amount, requested_at}),
     do: [
-      "{\"correlationId\":\"",
+      @payment_json_slice_1,
       correlation_id,
-      "\",\"amount\":",
+      @payment_json_slice_2,
       :erlang.float_to_binary(amount),
-      ",\"requestedAt\":\"",
+      @payment_json_slice_3,
       requested_at,
-      "\"}"
+      @payment_json_slice_4
     ]
 end
