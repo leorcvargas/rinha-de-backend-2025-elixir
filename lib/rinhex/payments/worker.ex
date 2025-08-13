@@ -88,7 +88,7 @@ defmodule Rinhex.Payments.Worker do
   defp handle_result({:skip, _input}), do: :skip
 
   defp schedule_tick(time \\ @tick_ms) do
-    Process.send_after(self(), @event_tick, time)
+    Process.send_after(__MODULE__, @event_tick, time)
   end
 
   defp next_tick_time_by_result(:done), do: @tick_ms
