@@ -2,6 +2,7 @@ defmodule Rinhex.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
+  alias Rinhex.WorkerController
   require Logger
   use Application
 
@@ -93,7 +94,14 @@ defmodule Rinhex.Application do
   @impl true
   def prep_stop(_) do
     final_summary =
-      :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [], 5_000)
+      System.get_env("APPLICATION_MODE")
+      |> case do
+        "api" ->
+          :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [nil, nil], 5_000)
+
+        "worker" ->
+          WorkerController.get_payments_summary(nil, nil)
+      end
 
     Logger.info("Final summary: #{final_summary}")
   end
