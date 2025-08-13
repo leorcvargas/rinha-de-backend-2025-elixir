@@ -300,7 +300,10 @@ export function handleSummary(data) {
     .plus(fallback_total_fee)
     .toNumber();
 
-  getBackendPaymentsSummary(from, to).then((data) => {
+  getBackendPaymentsSummary(
+    new Date(0).toISOString(),
+    new Date().toISOString(),
+  ).then((data) => {
     console.log("===> FINAL SUMMARY AFTER TESTS ARE FINISHED");
     console.dir(data);
   });
