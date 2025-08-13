@@ -2,6 +2,7 @@ defmodule Rinhex.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
+  require Logger
   use Application
 
   @impl true
@@ -87,6 +88,14 @@ defmodule Rinhex.Application do
     opts = [strategy: :one_for_one, name: Rinhex.Supervisor]
 
     Supervisor.start_link(children, opts)
+  end
+
+  @impl true
+  def prep_stop(_) do
+    final_summary =
+      :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [], 5_000)
+
+    Logger.info("Final summary: #{final_summary}")
   end
 
   def wait_and_chmod!(path, mode, tries \\ 100, sleep_ms \\ 10) do
