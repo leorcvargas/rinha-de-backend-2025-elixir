@@ -32,12 +32,6 @@ defmodule RinhexWeb.HttpServer do
     summary_json =
       :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [from, to], 5_000)
 
-    Logger.info("Summary pre sleep: #{summary_json}")
-
-    Process.sleep(1_500)
-
-    Logger.info("Summary post sleep: #{summary_json}")
-
     conn
     |> put_resp_content_type("application/json")
     |> send_resp(200, summary_json)
