@@ -25,9 +25,9 @@ defmodule Rinhex.Payments.Worker do
     Task.start(fn ->
       Queue.take()
       |> process()
-      |> next_tick_time_by_result()
-      |> schedule_tick()
     end)
+
+    schedule_tick(@tick_ms)
 
     {:noreply, state}
   end
