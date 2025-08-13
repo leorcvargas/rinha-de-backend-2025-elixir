@@ -40,7 +40,7 @@ export const options = {
       exec: "checkPaymentsConsistency",
       executor: "constant-vus",
       //startTime: "5s",
-      duration: "70s",
+      duration: "60s",
       vus: "1",
     },
     stage_00: {
@@ -305,7 +305,7 @@ export function handleSummary(data) {
     new Date().toISOString(),
   ).then((data) => {
     console.log("===> FINAL SUMMARY AFTER TESTS ARE FINISHED");
-    console.dir(data);
+    console.log(data);
   });
 
   const p_99 = new Big(
