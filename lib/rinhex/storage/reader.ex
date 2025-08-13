@@ -15,13 +15,10 @@ defmodule Rinhex.Storage.Reader do
     {:ok, state}
   end
 
-  def handle_call({:cross_node_query, {from, to}}, _from, state),
-    do:
-      from
-      |> query_by_date(to)
-      |> then(fn data -> {:reply, data, state} end)
-
   def get_payments_summary(from, to) do
+    from = iso_to_unix(from)
+    to = iso_to_unix(to)
+
     local_summary =
       query_by_date(from, to)
       |> aggregate_summary()
@@ -120,5 +117,14 @@ defmodule Rinhex.Storage.Reader do
 
   def build_name(node) do
     {:global, :"#{node}_boring_storage_reader"}
+  end
+
+  defp iso_to_unix(nil), do: nil
+
+  defp iso_to_unix(iso_dt) do
+    iso_dt
+    |> DateTime.from_iso8601()
+    |> then(fn {:ok, dt, 0} -> dt end)
+    |> DateTime.to_unix()
   end
 end

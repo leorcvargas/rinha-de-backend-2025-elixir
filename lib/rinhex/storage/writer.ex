@@ -23,7 +23,7 @@ defmodule Rinhex.Storage.Writer do
       @table,
       {
         key,
-        requested_at,
+        iso_to_unix(requested_at),
         amount,
         service
         # correlation_id
@@ -43,7 +43,7 @@ defmodule Rinhex.Storage.Writer do
         @table,
         {
           make_key(),
-          requested_at,
+          iso_to_unix(requested_at),
           amount,
           service
           # correlation_id
@@ -52,5 +52,12 @@ defmodule Rinhex.Storage.Writer do
 
   defp make_key() do
     System.unique_integer([:monotonic, :positive])
+  end
+
+  defp iso_to_unix(iso_dt) do
+    iso_dt
+    |> DateTime.from_iso8601()
+    |> then(fn {:ok, dt, 0} -> dt end)
+    |> DateTime.to_unix()
   end
 end
