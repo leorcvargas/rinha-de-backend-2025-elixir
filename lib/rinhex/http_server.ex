@@ -32,8 +32,20 @@ defmodule RinhexWeb.HttpServer do
     from = conn.params["from"]
     to = conn.params["to"]
 
-    summary_json =
-      :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [from, to], 5_000)
+    task =
+      Task.async(fn ->
+        Process.sleep(1_000)
+
+        :erpc.call(
+          :rinhex@worker,
+          WorkerController,
+          :get_payments_summary,
+          [from, to],
+          5_000
+        )
+      end)
+
+    summary_json = Task.await(task)
 
     conn
     |> put_resp_content_type("application/json")

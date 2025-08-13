@@ -17,8 +17,6 @@ defmodule Rinhex.Storage.Reader do
   end
 
   def get_payments_summary(from, to) do
-    Process.sleep(1_000)
-
     from = iso_to_unix(from)
     to = iso_to_unix(to)
 
