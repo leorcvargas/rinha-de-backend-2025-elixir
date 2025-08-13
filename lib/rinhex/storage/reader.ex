@@ -72,7 +72,15 @@ defmodule Rinhex.Storage.Reader do
   end
 
   def query_by_date(from, to) do
-    head = {:_, :"$2", :"$3", :"$4", :_}
+    head =
+      {
+        :_,
+        :"$2",
+        :"$3",
+        :"$4"
+        # correlation_id :_
+      }
+
     result_fields = [{{:"$3", :"$4"}}]
 
     ms =

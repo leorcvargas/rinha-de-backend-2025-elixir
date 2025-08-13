@@ -13,7 +13,10 @@ defmodule Rinhex.Storage.Writer do
     {:ok, state}
   end
 
-  def handle_cast({@event_insert_payment, {correlation_id, amount, requested_at, service}}, state) do
+  def handle_cast(
+        {@event_insert_payment, {_correlation_id, amount, requested_at, service}},
+        state
+      ) do
     key = make_key()
 
     :ets.insert(
@@ -22,8 +25,8 @@ defmodule Rinhex.Storage.Writer do
         key,
         requested_at,
         amount,
-        service,
-        correlation_id
+        service
+        # correlation_id
       }
     )
 
@@ -34,7 +37,7 @@ defmodule Rinhex.Storage.Writer do
     do: GenServer.cast(__MODULE__, {@event_insert_payment, payment})
 
   @compile {:inline, self_insert_payment: 1}
-  def self_insert_payment({correlation_id, amount, requested_at, service}),
+  def self_insert_payment({_correlation_id, amount, requested_at, service}),
     do:
       :ets.insert(
         @table,
@@ -42,8 +45,8 @@ defmodule Rinhex.Storage.Writer do
           make_key(),
           requested_at,
           amount,
-          service,
-          correlation_id
+          service
+          # correlation_id
         }
       )
 
