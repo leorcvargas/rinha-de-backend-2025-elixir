@@ -22,12 +22,10 @@ defmodule Rinhex.Payments.Worker do
 
   @impl true
   def handle_info(@event_tick, state) do
-    Task.start(fn ->
-      Queue.take()
-      |> process()
-      |> next_tick_time_by_result()
-      |> schedule_tick()
-    end)
+    Queue.take()
+    |> process()
+    |> next_tick_time_by_result()
+    |> schedule_tick()
 
     {:noreply, state}
   end
