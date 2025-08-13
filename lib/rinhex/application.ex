@@ -70,7 +70,7 @@ defmodule Rinhex.Application do
               name: Rinhex.Finch,
               pools: %{
                 :default => [
-                  size: 125,
+                  size: 300,
                   count: 1
                 ]
               }
