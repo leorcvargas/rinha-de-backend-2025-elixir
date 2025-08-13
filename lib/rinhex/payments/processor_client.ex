@@ -10,7 +10,9 @@ defmodule Rinhex.Payments.ProcessorClient do
   @payment_json_slice_3 ",\"requestedAt\":\""
   @payment_json_slice_4 "\"}"
   @field_failing "failing"
-  @field_min_response_time "failing"
+  @field_min_response_time "minResponseTime"
+  @processor_default_url "http://payment-processor-default:8080"
+  @processor_fallback_url "http://payment-processor-fallback:8080"
 
   def create_payment(
         service,
@@ -78,13 +80,9 @@ defmodule Rinhex.Payments.ProcessorClient do
     end
   end
 
-  defp url(:default), do: default_url()
+  defp url(:default), do: @processor_default_url
 
-  defp url(:fallback), do: fallback_url()
-
-  defp default_url, do: Application.get_env(:rinhex, :processor_default_url)
-
-  defp fallback_url, do: Application.get_env(:rinhex, :processor_fallback_url)
+  defp url(:fallback), do: @processor_fallback_url
 
   defp payment_to_json_iodata({correlation_id, amount, requested_at}),
     do: [
