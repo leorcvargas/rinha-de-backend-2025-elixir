@@ -68,7 +68,7 @@ defmodule Rinhex.Payments.Worker do
   end
 
   defp handle_result({:done, payment}) do
-    Storage.Writer.insert_payment(payment)
+    Storage.Writer.self_insert_payment(payment)
     :done
   end
 

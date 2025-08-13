@@ -1,12 +1,16 @@
 defmodule RinhexWeb.HttpServer do
+  @behaviour Plug
+
   import Plug.Conn
 
   alias Rinhex.{LocalBuffer, WorkerController}
 
   @req_len 128
 
+  @impl true
   def init(opts), do: opts
 
+  @impl true
   def call(%Plug.Conn{method: "POST", path_info: ["payments"]} = conn, _opts) do
     conn = send_resp(conn, 204, "")
 

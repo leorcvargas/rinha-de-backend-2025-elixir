@@ -33,6 +33,20 @@ defmodule Rinhex.Storage.Writer do
   def insert_payment(payment),
     do: GenServer.cast(__MODULE__, {@event_insert_payment, payment})
 
+  @compile {:inline, self_insert_payment: 1}
+  def self_insert_payment({correlation_id, amount, requested_at, service}),
+    do:
+      :ets.insert(
+        @table,
+        {
+          make_key(),
+          requested_at,
+          amount,
+          service,
+          correlation_id
+        }
+      )
+
   defp make_key() do
     System.unique_integer([:monotonic, :positive])
   end
