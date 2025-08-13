@@ -19,29 +19,28 @@ defmodule Rinhex.Storage.Reader do
     from = iso_to_unix(from)
     to = iso_to_unix(to)
 
-    local_summary =
-      query_by_date(from, to)
-      |> aggregate_summary()
+    query_by_date(from, to)
+    |> aggregate_summary()
 
-    all_summaries = [local_summary]
+    # all_summaries = [local_summary]
 
-    all_summaries
-    |> Enum.reduce(
-      @empty_summary,
-      fn global_summary, summary ->
-        summary
-        |> update_in(
-          [:default, :total_requests],
-          &(&1 + global_summary.default.total_requests)
-        )
-        |> update_in([:default, :total_amount], &(&1 + global_summary.default.total_amount))
-        |> update_in(
-          [:fallback, :total_requests],
-          &(&1 + global_summary.fallback.total_requests)
-        )
-        |> update_in([:fallback, :total_amount], &(&1 + global_summary.fallback.total_amount))
-      end
-    )
+    # all_summaries
+    # |> Enum.reduce(
+    #   @empty_summary,
+    #   fn global_summary, summary ->
+    #     summary
+    #     |> update_in(
+    #       [:default, :total_requests],
+    #       &(&1 + global_summary.default.total_requests)
+    #     )
+    #     |> update_in([:default, :total_amount], &(&1 + global_summary.default.total_amount))
+    #     |> update_in(
+    #       [:fallback, :total_requests],
+    #       &(&1 + global_summary.fallback.total_requests)
+    #     )
+    #     |> update_in([:fallback, :total_amount], &(&1 + global_summary.fallback.total_amount))
+    #   end
+    # )
   end
 
   def aggregate_summary(payments) do
