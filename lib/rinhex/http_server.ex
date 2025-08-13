@@ -16,13 +16,6 @@ defmodule RinhexWeb.HttpServer do
       )
 
     LocalBuffer.enqueue(raw_body)
-    # WorkerController.enqueue_payment(raw_body)
-    # :erpc.cast(
-    #   :rinhex@worker,
-    #   WorkerController,
-    #   :enqueue_payment,
-    #   [raw_body]
-    # )
 
     send_resp(conn, 204, "")
   end
