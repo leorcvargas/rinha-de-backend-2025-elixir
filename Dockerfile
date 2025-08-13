@@ -36,7 +36,7 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
-  tini libstdc++6 libncurses6 openssl ca-certificates \
+  tini libstdc++6 libncurses6 openssl ca-certificates htop \
   && rm -rf /var/lib/apt/lists/*
 
 ENV LANG=C.UTF-8 \
