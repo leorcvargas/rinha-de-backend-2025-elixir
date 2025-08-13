@@ -300,11 +300,6 @@ export function handleSummary(data) {
     .plus(fallback_total_fee)
     .toNumber();
 
-  getBackendPaymentsSummary(from, to).then((data) => {
-    console.log("===> FINAL SUMMARY AFTER TESTS ARE FINISHED");
-    console.dir(data);
-  });
-
   const p_99 = new Big(
     data.metrics["http_req_duration{expected_response:true}"].values["p(99)"],
   )
