@@ -3,7 +3,7 @@ defmodule RinhexWeb.HttpServer do
 
   alias Rinhex.{LocalBuffer, WorkerController}
 
-  @req_len 512
+  @req_len 128
 
   def init(opts), do: opts
 
