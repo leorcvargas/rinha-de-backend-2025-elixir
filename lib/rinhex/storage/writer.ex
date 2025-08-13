@@ -14,15 +14,16 @@ defmodule Rinhex.Storage.Writer do
   end
 
   def handle_cast(
-        {@event_insert_payment, {_correlation_id, amount, requested_at, service}},
+        {@event_insert_payment, {correlation_id, amount, requested_at, service}},
         state
       ) do
-    key = make_key()
+    # key = make_key()
 
     :ets.insert(
       @table,
       {
-        key,
+        # key,
+        correlation_id,
         iso_to_unix(requested_at),
         amount,
         service
@@ -37,12 +38,13 @@ defmodule Rinhex.Storage.Writer do
     do: GenServer.cast(__MODULE__, {@event_insert_payment, payment})
 
   @compile {:inline, self_insert_payment: 1}
-  def self_insert_payment({_correlation_id, amount, requested_at, service}),
+  def self_insert_payment({correlation_id, amount, requested_at, service}),
     do:
       :ets.insert(
         @table,
         {
-          make_key(),
+          # make_key(),
+          correlation_id,
           iso_to_unix(requested_at),
           amount,
           service
@@ -50,9 +52,9 @@ defmodule Rinhex.Storage.Writer do
         }
       )
 
-  defp make_key() do
-    System.unique_integer([:monotonic, :positive])
-  end
+  # defp make_key() do
+  #   System.unique_integer([:monotonic, :positive])
+  # end
 
   defp iso_to_unix(iso_dt) do
     iso_dt
