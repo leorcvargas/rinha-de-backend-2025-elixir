@@ -1,4 +1,5 @@
 defmodule Rinhex.Payments.Queue do
+  require Logger
   use GenServer
 
   @table :rinhex_payments_queue
@@ -16,11 +17,21 @@ defmodule Rinhex.Payments.Queue do
       write_concurrency: true
     ])
 
+    Process.send_after(__MODULE__, :debug_size, 100)
+
     {:ok, state}
   end
 
   def handle_cast({:put, {correlation_id, amount}}, state) do
     :ets.insert(@table, {correlation_id, amount})
+
+    {:noreply, state}
+  end
+
+  def handle_info(:debug_size, state) do
+    Logger.info("Queue size: #{size()}")
+
+    Process.send_after(__MODULE__, :debug_size, 100)
 
     {:noreply, state}
   end
