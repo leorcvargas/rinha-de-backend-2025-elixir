@@ -2,7 +2,6 @@ defmodule Rinhex.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
-  alias Rinhex.WorkerController
   require Logger
   use Application
 
