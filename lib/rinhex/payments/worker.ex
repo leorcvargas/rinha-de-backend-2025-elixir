@@ -6,8 +6,8 @@ defmodule Rinhex.Payments.Worker do
   alias Rinhex.{Semaphore, Storage}
 
   @event_tick :tick
-  @tick_ms 3
-  @delay_tick_ms 3
+  @tick_ms 0
+  @delay_tick_ms 0
 
   def start_link(state \\ []) do
     GenServer.start_link(__MODULE__, state)
