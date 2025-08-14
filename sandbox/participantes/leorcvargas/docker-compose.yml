@@ -30,7 +30,7 @@ services:
           cpus: "0.4"
           memory: "27MB"
     environment:
-      # - GOMAXPROCS=1
+      - GOMAXPROCS=1
       - GOGC=3000
 
   # loadbalancer:
