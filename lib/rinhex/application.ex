@@ -48,14 +48,11 @@ defmodule Rinhex.Application do
               # gc_every_n_keepalive_requests: 2
               # gc_every_n_keepalive_requests: 20_000
               # ],
-              plug: RinhexWeb.HttpServer,
-              scheme: :http,
-              ip: {:local, socket_path},
-              port: 0,
-              thousand_island_options: [
-                num_acceptors: 1,
-                num_connections: 1024 * 8
-              ]
+              plug: RinhexWeb.HttpServer, scheme: :http, ip: {:local, socket_path}, port: 0
+              # thousand_island_options: [
+              #   num_acceptors: 1,
+              #   num_connections: 1024 * 8
+              # ]
             },
             {Task, fn -> wait_and_chmod!(socket_path, 0o777) end}
           ]
