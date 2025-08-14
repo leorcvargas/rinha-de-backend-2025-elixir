@@ -53,8 +53,8 @@ defmodule Rinhex.Application do
               ip: {:local, socket_path},
               port: 0,
               thousand_island_options: [
-                num_acceptors: 64
-                # num_connections: 1024 * 8
+                num_acceptors: 1,
+                num_connections: 1024 * 8
               ]
             },
             {Task, fn -> wait_and_chmod!(socket_path, 0o777) end}
