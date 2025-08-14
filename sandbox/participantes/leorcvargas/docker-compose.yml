@@ -10,35 +10,13 @@ x-service-templates:
       - rinhex
 
 services:
-  loadbalancer:
-    build:
-      context: ../../../golb
-      dockerfile: Dockerfile
-    ports:
-      - "9999:80"
-    volumes:
-      - sockets:/tmp/rinhex/:rw
-    depends_on:
-      - api1
-      - api2
-      - worker
-    networks:
-      - rinhex
-    deploy:
-      resources:
-        limits:
-          cpus: "0.4"
-          memory: "27MB"
-    environment:
-      - GOMAXPROCS=1
-      - GOGC=3000
-
   # loadbalancer:
-  #   image: openresty/openresty:bullseye
+  #   build:
+  #     context: ../../../golb
+  #     dockerfile: Dockerfile
   #   ports:
   #     - "9999:80"
   #   volumes:
-  #     - ./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:rw
   #     - sockets:/tmp/rinhex/:rw
   #   depends_on:
   #     - api1
@@ -51,6 +29,28 @@ services:
   #       limits:
   #         cpus: "0.4"
   #         memory: "27MB"
+  #   environment:
+  #     - GOMAXPROCS=1
+  #     - GOGC=3000
+
+  loadbalancer:
+    image: openresty/openresty:bullseye
+    ports:
+      - "9999:80"
+    volumes:
+      - ./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:rw
+      - sockets:/tmp/rinhex/:rw
+    depends_on:
+      - api1
+      - api2
+      - worker
+    networks:
+      - rinhex
+    deploy:
+      resources:
+        limits:
+          cpus: "0.4"
+          memory: "27MB"
 
   api1:
     <<: *base
