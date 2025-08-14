@@ -46,7 +46,7 @@ defmodule Rinhex.Application do
               plug: RinhexWeb.HttpServer,
               http_1_options: [
                 # clear_process_dict: false
-                gc_every_n_keepalive_requests: 2
+                # gc_every_n_keepalive_requests: 2
                 # gc_every_n_keepalive_requests: 20_000
               ],
               scheme: :http,
