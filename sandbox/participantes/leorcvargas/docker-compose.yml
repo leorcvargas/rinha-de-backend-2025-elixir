@@ -75,7 +75,7 @@ services:
       resources:
         limits:
           cpus: "0.5"
-          # memory: "95MB"
+          memory: "95MB"
     environment:
       APPLICATION_MODE: "worker"
       ERL_MAX_PORTS: 1024
