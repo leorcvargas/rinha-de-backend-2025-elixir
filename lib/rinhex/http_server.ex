@@ -1,11 +1,20 @@
 defmodule Rinhex.HttpServer do
+  @moduledoc """
+  Ultra-minimal UDS server with keep-alive support for Rinha 2025.
+  Optimized for 0.35 vCPU constraint.
+  """
+
   alias Rinhex.{LocalBuffer, WorkerController}
 
   @http_204 "HTTP/1.1 204 No Content\r\n\r\n"
   @http_200 "HTTP/1.1 200 OK\r\n"
   @http_200_json "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
   @http_404 "HTTP/1.1 404 Not Found\r\n\r\n"
+
   @pong_response @http_200 <> "Content-Length: 4\r\n\r\npong"
+
+  @max_keepalive_requests 100
+  @keepalive_timeout 10_000
 
   def child_spec(opts) do
     %{
@@ -20,8 +29,11 @@ defmodule Rinhex.HttpServer do
   def start_link(opts \\ []) do
     socket_path =
       System.get_env("UDS_SOCKET") ||
-        Keyword.get(opts, :socket_path) ||
-        "/tmp/rinha.sock"
+        Keyword.get(opts, :socket_path)
+
+    if !socket_path do
+      raise "Environment variable UDS_SOCKET is missing"
+    end
 
     pid =
       spawn_link(fn ->
@@ -55,9 +67,10 @@ defmodule Rinhex.HttpServer do
       {:ok, listen_socket} ->
         File.chmod!(socket_path, 0o666)
 
-        # 2 acceptors for 0.35 vCPU
-        spawn_link(fn -> acceptor_loop(listen_socket) end)
-        spawn_link(fn -> acceptor_loop(listen_socket) end)
+        # TODO: control number of acceptors in options
+        Enum.each(1..2, fn _ ->
+          spawn_link(fn -> acceptor_loop(listen_socket) end)
+        end)
 
         listen_socket
 
@@ -69,7 +82,7 @@ defmodule Rinhex.HttpServer do
   defp acceptor_loop(listen_socket) do
     case :gen_tcp.accept(listen_socket) do
       {:ok, socket} ->
-        handle_request(socket)
+        spawn(fn -> handle_connection(socket, 0) end)
         acceptor_loop(listen_socket)
 
       {:error, :closed} ->
@@ -81,18 +94,41 @@ defmodule Rinhex.HttpServer do
     end
   end
 
-  defp handle_request(socket) do
-    # Read with same timeout as @req_len approach
-    case :gen_tcp.recv(socket, 0, 500) do
+  defp handle_connection(socket, request_count) when request_count >= @max_keepalive_requests do
+    :gen_tcp.close(socket)
+  end
+
+  defp handle_connection(socket, request_count) do
+    case :gen_tcp.recv(socket, 0, @keepalive_timeout) do
       {:ok, data} ->
         response = route_request(data)
         :gen_tcp.send(socket, response)
 
-      _ ->
-        :ok
-    end
+        if should_keep_alive?(data) do
+          handle_connection(socket, request_count + 1)
+        else
+          :gen_tcp.close(socket)
+        end
 
-    :gen_tcp.close(socket)
+      {:error, :timeout} ->
+        :gen_tcp.close(socket)
+
+      {:error, _} ->
+        :gen_tcp.close(socket)
+    end
+  end
+
+  defp should_keep_alive?(request) do
+    cond do
+      String.contains?(request, " HTTP/1.0") ->
+        String.contains?(request, "Connection: keep-alive")
+
+      String.contains?(request, " HTTP/1.1") ->
+        not String.contains?(request, "Connection: close")
+
+      true ->
+        false
+    end
   end
 
   defp route_request(<<"POST /payments HTTP/1.", _version::size(8), _rest::binary>> = request) do
@@ -151,30 +187,26 @@ defmodule Rinhex.HttpServer do
   defp parse_query_params(rest) do
     case rest do
       <<"?", query_rest::binary>> ->
-        # Extract query string before HTTP version
         query =
           case :binary.split(query_rest, " HTTP/") do
             [q, _] -> q
             _ -> ""
           end
 
-        # Parse from and to params
-        params = parse_query_string(query)
+        params =
+          query
+          |> String.split("&")
+          |> Enum.reduce(%{}, fn pair, acc ->
+            case String.split(pair, "=", parts: 2) do
+              [key, value] -> Map.put(acc, key, URI.decode(value))
+              _ -> acc
+            end
+          end)
+
         {params["from"], params["to"]}
 
       _ ->
         {nil, nil}
     end
-  end
-
-  defp parse_query_string(query_string) do
-    query_string
-    |> String.split("&")
-    |> Enum.reduce(%{}, fn pair, acc ->
-      case String.split(pair, "=", parts: 2) do
-        [key, value] -> Map.put(acc, key, URI.decode(value))
-        _ -> acc
-      end
-    end)
   end
 end
