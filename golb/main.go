@@ -91,7 +91,7 @@ func main() {
 		socket2    = flag.String("socket2", "/tmp/rinhex/api2.sock", "Second backend socket")
 
 		// Matching my Bandit num of acceptors
-		maxConns = flag.Int("maxconns", 1, "Max connections per backend")
+		maxConns = flag.Int("maxconns", 550, "Max connections per backend")
 	)
 	flag.Parse()
 

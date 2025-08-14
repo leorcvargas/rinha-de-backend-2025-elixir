@@ -31,7 +31,7 @@ services:
           memory: "27MB"
     environment:
       - GOMAXPROCS=1
-      - GOGC=1000
+      - GOGC=3000
 
   # loadbalancer:
   #   image: openresty/openresty:bullseye
