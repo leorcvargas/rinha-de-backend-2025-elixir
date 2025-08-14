@@ -1,4 +1,5 @@
 defmodule Rinhex.Storage.Reader do
+  require Logger
   use GenServer
 
   @table :rinhex_boring_storage
@@ -15,12 +16,25 @@ defmodule Rinhex.Storage.Reader do
     {:ok, state}
   end
 
-  def get_payments_summary(from, to) do
+  def handle_call({:get_payments_summary, {from, to}}, _from, state) do
     from = iso_to_unix(from)
     to = iso_to_unix(to)
 
-    query_by_date(from, to)
-    |> aggregate_summary()
+    task =
+      Task.async(fn ->
+        Process.sleep(1_000)
+
+        query_by_date(from, to)
+        |> aggregate_summary()
+      end)
+
+    summary = Task.await(task)
+
+    {:reply, summary, state}
+  end
+
+  def get_payments_summary(from, to) do
+    GenServer.call(build_name(node()), {:get_payments_summary, {from, to}})
   end
 
   def aggregate_summary(payments) do

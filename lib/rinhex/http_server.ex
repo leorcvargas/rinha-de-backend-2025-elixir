@@ -5,7 +5,7 @@ defmodule RinhexWeb.HttpServer do
 
   alias Rinhex.{LocalBuffer, WorkerController}
 
-  @req_len 128
+  @req_len 512
 
   @impl true
   def init(opts), do: opts
@@ -14,14 +14,14 @@ defmodule RinhexWeb.HttpServer do
   def call(%Plug.Conn{method: "POST", path_info: ["payments"]} = conn, _opts) do
     conn = send_resp(conn, 204, "")
 
-    {:ok, raw_body, conn} =
+    {:ok, iodata_body, conn} =
       read_body(
         conn,
         length: @req_len,
         read_length: @req_len
       )
 
-    LocalBuffer.enqueue(raw_body)
+    LocalBuffer.enqueue(iodata_body)
 
     conn
   end
@@ -33,7 +33,13 @@ defmodule RinhexWeb.HttpServer do
     to = conn.params["to"]
 
     summary_json =
-      :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [from, to], 5_000)
+      :erpc.call(
+        :rinhex@worker,
+        WorkerController,
+        :get_payments_summary,
+        [from, to],
+        5_000
+      )
 
     conn
     |> put_resp_content_type("application/json")

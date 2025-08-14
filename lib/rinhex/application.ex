@@ -7,6 +7,8 @@ defmodule Rinhex.Application do
 
   @impl true
   def start(_type, _args) do
+    Logger.info("Starting num_schedulers=#{System.schedulers()}")
+
     topologies = [
       gossip: [
         strategy: Cluster.Strategy.Gossip,
@@ -41,19 +43,19 @@ defmodule Rinhex.Application do
             Rinhex.LocalBuffer,
             {
               Bandit,
-              # http_1_options: [
-              # clear_process_dict: false
-              # gc_every_n_keepalive_requests: 2
-              # gc_every_n_keepalive_requests: 20_000
-              # ],
+              http_1_options: [
+                clear_process_dict: false,
+                gc_every_n_keepalive_requests: 20_000
+              ],
+              http_options: [compress: false],
               plug: RinhexWeb.HttpServer,
               scheme: :http,
               ip: {:local, socket_path},
-              port: 0,
-              thousand_island_options: [
-                num_acceptors: 1,
-                num_connections: 1024 * 8
-              ]
+              port: 0
+              # thousand_island_options: [
+              #   num_acceptors: 1,
+              #   num_connections: 1024 * 8
+              # ]
             },
             {Task, fn -> wait_and_chmod!(socket_path, 0o777) end}
           ]
@@ -96,7 +98,7 @@ defmodule Rinhex.Application do
   @impl true
   def prep_stop(_) do
     Logger.info("Sleeping before stopping")
-    Process.sleep(3_000)
+    Process.sleep(1_000)
   end
 
   def wait_and_chmod!(path, mode, tries \\ 100, sleep_ms \\ 10) do

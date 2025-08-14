@@ -4,7 +4,7 @@ defmodule Rinhex.LocalBuffer do
 
   @table :payment_buffer
 
-  @flush_interval 10
+  @flush_interval 20
   @dummy_key 0
 
   def start_link(state \\ []) do

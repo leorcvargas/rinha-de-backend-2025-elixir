@@ -15,30 +15,30 @@ defmodule Rinhex.WorkerController do
     {:ok, state}
   end
 
-  def handle_info({:enqueue_payment, raw_body}, state) do
-    parse_and_enqueue(raw_body)
+  def handle_info({:enqueue_payment, iodata_body}, state) do
+    parse_and_enqueue(iodata_body)
 
     {:noreply, state}
   end
 
-  def handle_info({:batch_enqueue_payments, raw_bodies}, state) do
-    Enum.each(raw_bodies, &parse_and_enqueue/1)
+  def handle_info({:batch_enqueue_payments, iodata_bodies}, state) do
+    Enum.each(iodata_bodies, &parse_and_enqueue/1)
 
     {:noreply, state}
   end
 
-  def enqueue_payment(raw_body) do
+  def enqueue_payment(iodata_body) do
     Process.send(
       @dest,
-      {:enqueue_payment, raw_body},
+      {:enqueue_payment, iodata_body},
       [:noconnect, :nosuspend]
     )
   end
 
-  def batch_enqueue_payments(raw_bodies) do
+  def batch_enqueue_payments(iodata_bodies) do
     Process.send(
       @dest,
-      {:batch_enqueue_payments, raw_bodies},
+      {:batch_enqueue_payments, iodata_bodies},
       [:noconnect, :nosuspend]
     )
   end
@@ -59,8 +59,8 @@ defmodule Rinhex.WorkerController do
     ]
   end
 
-  defp parse_and_enqueue(raw_body) do
-    raw_body
+  defp parse_and_enqueue(iodata_body) do
+    iodata_body
     |> Jason.decode(keys: :atoms!)
     |> case do
       {:ok, body} ->

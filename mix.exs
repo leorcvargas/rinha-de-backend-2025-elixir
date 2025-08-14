@@ -38,8 +38,9 @@ defmodule Rinhex.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:thousand_island, "~> 1.0"},
+      {:bandit, path: "./bandido"},
       {:jason, "~> 1.2"},
-      {:bandit, "~> 1.5"},
       {:libcluster, "~> 3.5"},
       {:finch, "~> 0.20"}
     ]
