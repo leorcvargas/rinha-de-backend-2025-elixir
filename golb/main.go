@@ -117,8 +117,8 @@ func main() {
 		NoDefaultContentType:          true,
 		ReduceMemoryUsage:             true,
 		DisableHeaderNamesNormalizing: true,
-		ReadBufferSize:                1024,
-		WriteBufferSize:               1024,
+		ReadBufferSize:                512,
+		WriteBufferSize:               512,
 	}
 
 	log.Printf("LB on %s (GOMAXPROCS=%d)", *listenAddr, runtime.GOMAXPROCS(0))
