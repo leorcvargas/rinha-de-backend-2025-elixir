@@ -45,27 +45,29 @@ func (lb *LoadBalancer) getNextBackend() *Backend {
 }
 
 func (lb *LoadBalancer) HandleRequest(ctx *fasthttp.RequestCtx) {
-	backend := lb.getNextBackend()
-	if backend == nil {
-		ctx.Error("No backends available", fasthttp.StatusServiceUnavailable)
-		return
-	}
+	go func() {
+		backend := lb.getNextBackend()
+		if backend == nil {
+			ctx.Error("No backends available", fasthttp.StatusServiceUnavailable)
+			return
+		}
 
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse(resp)
+		req := fasthttp.AcquireRequest()
+		resp := fasthttp.AcquireResponse()
+		defer fasthttp.ReleaseRequest(req)
+		defer fasthttp.ReleaseResponse(resp)
 
-	ctx.Request.CopyTo(req)
+		ctx.Request.CopyTo(req)
 
-	err := backend.client.Do(req, resp)
-	if err != nil {
-		log.Printf("Error forwarding request to %s: %v", backend.socket, err)
-		ctx.Error("Backend error", fasthttp.StatusBadGateway)
-		return
-	}
+		err := backend.client.Do(req, resp)
+		if err != nil {
+			log.Printf("Error forwarding request to %s: %v", backend.socket, err)
+			ctx.Error("Backend error", fasthttp.StatusBadGateway)
+			return
+		}
 
-	resp.CopyTo(&ctx.Response)
+		resp.CopyTo(&ctx.Response)
+	}()
 }
 
 func main() {

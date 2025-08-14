@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24 AS builder
 
 WORKDIR /app
 
@@ -6,11 +6,9 @@ COPY . .
 
 RUN go get
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o loadbalancer .
+RUN GOOS=linux go build -a -o loadbalancer .
 
-FROM alpine:3.21.4
-
-RUN apk --no-cache add ca-certificates
+FROM docker.io/debian:bookworm-20250721-slim
 
 WORKDIR /app/
 
