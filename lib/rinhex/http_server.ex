@@ -14,7 +14,7 @@ defmodule Rinhex.HttpServer do
   @pong_response @http_200 <> "Content-Length: 4\r\n\r\npong"
 
   @max_keepalive_requests 100
-  @keepalive_timeout 10_000
+  @keepalive_timeout 25_000
 
   def child_spec(opts) do
     %{
@@ -89,7 +89,7 @@ defmodule Rinhex.HttpServer do
         :ok
 
       {:error, _} ->
-        :timer.sleep(10)
+        # :timer.sleep(10)
         acceptor_loop(listen_socket)
     end
   end
