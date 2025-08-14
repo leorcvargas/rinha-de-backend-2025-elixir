@@ -58,10 +58,6 @@ func (lb *LoadBalancer) HandleRequest(ctx *fasthttp.RequestCtx) {
 
 	ctx.Request.CopyTo(req)
 
-	req.SetHost("localhost")
-	req.URI().SetScheme("http")
-	req.URI().SetHost("localhost")
-
 	err := backend.client.Do(req, resp)
 	if err != nil {
 		log.Printf("Error forwarding request to %s: %v", backend.socket, err)
