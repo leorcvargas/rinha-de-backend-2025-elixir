@@ -7,10 +7,9 @@ defmodule Bandit.HTTP1.Handler do
   @impl ThousandIsland.Handler
   def handle_data(data, socket, state) do
     transport = %Bandit.HTTP1.Socket{socket: socket, buffer: data, opts: state.opts}
-    connection_span = ThousandIsland.Socket.telemetry_span(socket)
     conn_data = Bandit.SocketHelpers.conn_data(socket)
 
-    case Bandit.Pipeline.run(transport, state.plug, connection_span, conn_data, state.opts) do
+    case Bandit.Pipeline.run(transport, state.plug, nil, conn_data, state.opts) do
       {:ok, transport} -> maybe_keepalive(transport, state)
       {:error, _reason} -> {:close, state}
       {:upgrade, _transport, :websocket, opts} -> do_websocket_upgrade(opts, state)
@@ -25,7 +24,14 @@ defmodule Bandit.HTTP1.Handler do
     if under_limit && transport.keepalive do
       if Keyword.get(state.opts.http_1, :clear_process_dict, true), do: clear_process_dict()
       gc_every_n_requests = Keyword.get(state.opts.http_1, :gc_every_n_keepalive_requests, 5)
-      if rem(requests_processed, gc_every_n_requests) == 0, do: :erlang.garbage_collect()
+
+      if rem(requests_processed, gc_every_n_requests) == 0 do
+        start_t = System.monotonic_time()
+        :erlang.garbage_collect()
+        end_t = System.monotonic_time()
+
+        IO.puts("GC took #{end_t - start_t}us")
+      end
 
       state = Map.put(state, :requests_processed, requests_processed)
 
