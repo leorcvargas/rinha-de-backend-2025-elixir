@@ -56,29 +56,16 @@ defmodule Bandit.Adapter do
   def read_req_body(%__MODULE__{} = adapter, opts) do
     validate_calling_process!(adapter)
 
-    metrics =
-      adapter.metrics
-      |> Map.put_new_lazy(:req_body_start_time, &Bandit.Telemetry.monotonic_time/0)
-
     case Bandit.HTTPTransport.read_data(adapter.transport, opts) do
       {:ok, body, transport} ->
-        body = IO.iodata_to_binary(body)
+        # body = IO.iodata_to_binary(body)
 
-        metrics =
-          metrics
-          |> Map.update(:req_body_bytes, byte_size(body), &(&1 + byte_size(body)))
-          |> Map.put(:req_body_end_time, Bandit.Telemetry.monotonic_time())
-
-        {:ok, body, %{adapter | transport: transport, metrics: metrics}}
+        {:ok, body, %{adapter | transport: transport, metrics: %{}}}
 
       {:more, body, transport} ->
-        body = IO.iodata_to_binary(body)
+        # body = IO.iodata_to_binary(body)
 
-        metrics =
-          metrics
-          |> Map.update(:req_body_bytes, byte_size(body), &(&1 + byte_size(body)))
-
-        {:more, body, %{adapter | transport: transport, metrics: metrics}}
+        {:more, body, %{adapter | transport: transport, metrics: %{}}}
     end
   end
 
