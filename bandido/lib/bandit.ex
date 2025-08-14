@@ -89,7 +89,6 @@ defmodule Bandit do
           | {:thousand_island_options, ThousandIsland.options()}
           | {:http_options, http_options()}
           | {:http_1_options, http_1_options()}
-          | {:http_2_options, http_2_options()}
           | {:websocket_options, websocket_options()}
         ]
 
@@ -154,25 +153,6 @@ defmodule Bandit do
         ]
 
   @typedoc """
-  Options to configure the HTTP/2 stack in Bandit
-
-  * `enabled`: Whether or not to serve HTTP/2 requests. Defaults to true
-  * `max_header_block_size`: The maximum permitted length of a field block of an HTTP/2 request
-    (expressed as the number of compressed bytes). Includes any concatenated block fragments from
-    continuation frames. Defaults to 50_000 bytes
-  * `max_requests`: The maximum number of requests to serve in a single
-    HTTP/2 connection before closing the connection. Defaults to 0 (no limit)
-  * `default_local_settings`: Options to override the default values for local HTTP/2
-    settings. Values provided here will override the defaults specified in RFC9113§6.5.2
-  """
-  @type http_2_options :: [
-          {:enabled, boolean()}
-          | {:max_header_block_size, pos_integer()}
-          | {:max_requests, pos_integer()}
-          | {:default_local_settings, keyword()}
-        ]
-
-  @typedoc """
   Options to configure the WebSocket stack in Bandit
 
   * `enabled`: Whether or not to serve WebSocket upgrade requests. Defaults to true
@@ -218,10 +198,9 @@ defmodule Bandit do
     }
   end
 
-  @top_level_keys ~w(plug scheme port ip keyfile certfile otp_app cipher_suite display_plug startup_log thousand_island_options http_options http_1_options http_2_options websocket_options)a
+  @top_level_keys ~w(plug scheme port ip keyfile certfile otp_app cipher_suite display_plug startup_log thousand_island_options http_options http_1_options websocket_options)a
   @http_keys ~w(compress deflate_options log_exceptions_with_status_codes log_protocol_errors log_client_closures)a
   @http_1_keys ~w(enabled max_request_line_length max_header_length max_header_count max_requests clear_process_dict gc_every_n_keepalive_requests log_unknown_messages)a
-  @http_2_keys ~w(enabled max_header_block_size max_requests default_local_settings)a
   @websocket_keys ~w(enabled max_frame_size validate_text_frames compress primitive_ops_module)a
   @thousand_island_keys ThousandIsland.ServerConfig.__struct__()
                         |> Map.from_struct()
@@ -248,10 +227,6 @@ defmodule Bandit do
       Keyword.get(arg, :http_1_options, [])
       |> validate_options(@http_1_keys, :http_1_options)
 
-    http_2_options =
-      Keyword.get(arg, :http_2_options, [])
-      |> validate_options(@http_2_keys, :http_2_options)
-
     websocket_options =
       Keyword.get(arg, :websocket_options, [])
       |> validate_options(@websocket_keys, :websocket_options)
@@ -261,7 +236,6 @@ defmodule Bandit do
     startup_log = Keyword.get(arg, :startup_log, :info)
 
     {http_1_enabled, http_1_options} = Keyword.pop(http_1_options, :enabled, true)
-    {http_2_enabled, http_2_options} = Keyword.pop(http_2_options, :enabled, true)
 
     handler_options = %{
       plug: plug,
@@ -269,11 +243,9 @@ defmodule Bandit do
       opts: %{
         http: http_options,
         http_1: http_1_options,
-        http_2: http_2_options,
         websocket: websocket_options
       },
-      http_1_enabled: http_1_enabled,
-      http_2_enabled: http_2_enabled
+      http_1_enabled: http_1_enabled
     }
 
     scheme = Keyword.get(arg, :scheme, :http)
@@ -289,8 +261,7 @@ defmodule Bandit do
 
         :https ->
           supported_protocols =
-            if(http_2_enabled, do: ["h2"], else: []) ++
-              if http_1_enabled, do: ["http/1.1"], else: []
+            if http_1_enabled, do: ["http/1.1"], else: []
 
           transport_options =
             Keyword.take(arg, [:ip, :keyfile, :certfile, :otp_app, :cipher_suite])

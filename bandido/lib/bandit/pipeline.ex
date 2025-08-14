@@ -206,9 +206,7 @@ defmodule Bandit.Pipeline do
   defp handle_error(:error, %type{} = error, stacktrace, transport, span, opts, metadata)
        when type in [
               Bandit.HTTPError,
-              Bandit.TransportError,
-              Bandit.HTTP2.Errors.StreamError,
-              Bandit.HTTP2.Errors.ConnectionError
+              Bandit.TransportError
             ] do
     Bandit.Telemetry.stop_span(span, %{}, Enum.into(metadata, %{error: error.message}))
 

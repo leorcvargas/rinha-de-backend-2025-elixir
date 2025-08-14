@@ -75,10 +75,6 @@ defmodule Bandit.MixProject do
           filename: "HTTP1_README.md",
           title: "HTTP/1 Implementation Notes"
         ],
-        "lib/bandit/http2/README.md": [
-          filename: "HTTP2_README.md",
-          title: "HTTP/2 Implementation Notes"
-        ],
         "lib/bandit/websocket/README.md": [
           filename: "WebSocket_README.md",
           title: "WebSocket Implementation Notes"
