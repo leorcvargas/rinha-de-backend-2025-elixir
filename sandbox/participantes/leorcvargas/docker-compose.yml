@@ -30,7 +30,7 @@ services:
           cpus: "0.4"
           memory: "27MB"
     environment:
-      - GOMAXPROCS=3
+      - GOMAXPROCS=1
 
   # loadbalancer:
   #   image: openresty/openresty:bullseye
