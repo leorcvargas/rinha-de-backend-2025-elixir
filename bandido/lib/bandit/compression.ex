@@ -20,65 +20,67 @@ defmodule Bandit.Compression do
     |> Enum.find(&(&1 in ~w(deflate gzip x-gzip)))
   end
 
-  def new(adapter, status, headers, empty_body?, streamable \\ false) do
-    response_content_encoding_header = Bandit.Headers.get_header(headers, "content-encoding")
+  def new(_adapter, _status, headers, _empty_body?, _streamable \\ false) do
+    {headers, %__MODULE__{method: :identity}}
 
-    headers = maybe_add_vary_header(adapter, status, headers)
-
-    if status not in [204, 304] && not is_nil(adapter.content_encoding) &&
-         is_nil(response_content_encoding_header) &&
-         !response_has_strong_etag(headers) && !response_indicates_no_transform(headers) &&
-         !empty_body? do
-      deflate_options = Keyword.get(adapter.opts.http, :deflate_options, [])
-
-      case start_stream(adapter.content_encoding, deflate_options, streamable) do
-        {:ok, context} -> {[{"content-encoding", adapter.content_encoding} | headers], context}
-        {:error, :unsupported_encoding} -> {headers, %__MODULE__{method: :identity}}
-      end
-    else
-      {headers, %__MODULE__{method: :identity}}
-    end
+    # response_content_encoding_header = Bandit.Headers.get_header(headers, "content-encoding")
+    #
+    # # headers = maybe_add_vary_header(adapter, status, headers)
+    #
+    # if status not in [204, 304] && not is_nil(adapter.content_encoding) &&
+    #      is_nil(response_content_encoding_header) &&
+    #      !response_has_strong_etag(headers) && !response_indicates_no_transform(headers) &&
+    #      !empty_body? do
+    #   deflate_options = Keyword.get(adapter.opts.http, :deflate_options, [])
+    #
+    #   case start_stream(adapter.content_encoding, deflate_options, streamable) do
+    #     {:ok, context} -> {[{"content-encoding", adapter.content_encoding} | headers], context}
+    #     {:error, :unsupported_encoding} -> {headers, %__MODULE__{method: :identity}}
+    #   end
+    # else
+    #   {headers, %__MODULE__{method: :identity}}
+    # end
   end
 
-  defp maybe_add_vary_header(adapter, status, headers) do
-    if status != 204 && Keyword.get(adapter.opts.http, :compress, true),
-      do: [{"vary", "accept-encoding"} | headers],
-      else: headers
-  end
+  # defp maybe_add_vary_header(adapter, status, headers) do
+  #   if status != 204 && Keyword.get(adapter.opts.http, :compress, true),
+  #     do: [{"vary", "accept-encoding"} | headers],
+  #     else: headers
+  # end
 
-  defp response_has_strong_etag(headers) do
-    case Bandit.Headers.get_header(headers, "etag") do
-      nil -> false
-      "\W" <> _rest -> false
-      _strong_etag -> true
-    end
-  end
+  # defp response_has_strong_etag(headers) do
+  #   case Bandit.Headers.get_header(headers, "etag") do
+  #     nil -> false
+  #     "\W" <> _rest -> false
+  #     _strong_etag -> true
+  #   end
+  # end
+  #
+  # defp response_indicates_no_transform(headers) do
+  #   case Bandit.Headers.get_header(headers, "cache-control") do
+  #     nil -> false
+  #     header -> "no-transform" in Plug.Conn.Utils.list(header)
+  #   end
+  # end
+  #
+  # defp start_stream("deflate", opts, _streamable) do
+  #   deflate_context = :zlib.open()
+  #
+  #   :zlib.deflateInit(
+  #     deflate_context,
+  #     Keyword.get(opts, :level, :default),
+  #     :deflated,
+  #     Keyword.get(opts, :window_bits, 15),
+  #     Keyword.get(opts, :mem_level, 8),
+  #     Keyword.get(opts, :strategy, :default)
+  #   )
+  #
+  #   {:ok, %__MODULE__{method: :deflate, lib_context: deflate_context}}
+  # end
 
-  defp response_indicates_no_transform(headers) do
-    case Bandit.Headers.get_header(headers, "cache-control") do
-      nil -> false
-      header -> "no-transform" in Plug.Conn.Utils.list(header)
-    end
-  end
-
-  defp start_stream("deflate", opts, _streamable) do
-    deflate_context = :zlib.open()
-
-    :zlib.deflateInit(
-      deflate_context,
-      Keyword.get(opts, :level, :default),
-      :deflated,
-      Keyword.get(opts, :window_bits, 15),
-      Keyword.get(opts, :mem_level, 8),
-      Keyword.get(opts, :strategy, :default)
-    )
-
-    {:ok, %__MODULE__{method: :deflate, lib_context: deflate_context}}
-  end
-
-  defp start_stream("x-gzip", _opts, false), do: {:ok, %__MODULE__{method: :gzip}}
-  defp start_stream("gzip", _opts, false), do: {:ok, %__MODULE__{method: :gzip}}
-  defp start_stream(_encoding, _opts, _streamable), do: {:error, :unsupported_encoding}
+  # defp start_stream("x-gzip", _opts, false), do: {:ok, %__MODULE__{method: :gzip}}
+  # defp start_stream("gzip", _opts, false), do: {:ok, %__MODULE__{method: :gzip}}
+  # defp start_stream(_encoding, _opts, _streamable), do: {:error, :unsupported_encoding}
 
   # def compress_chunk(chunk, %__MODULE__{method: :deflate} = context) do
   #   result = :zlib.deflate(context.lib_context, chunk, :sync)
