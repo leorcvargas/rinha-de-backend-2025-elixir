@@ -7,6 +7,8 @@ defmodule Rinhex.Application do
 
   @impl true
   def start(_type, _args) do
+    Logger.info("Starting num_schedulers=#{System.schedulers()}")
+
     topologies = [
       gossip: [
         strategy: Cluster.Strategy.Gossip,
