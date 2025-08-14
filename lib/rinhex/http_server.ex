@@ -3,7 +3,7 @@ defmodule RinhexWeb.HttpServer do
 
   import Plug.Conn
 
-  alias Rinhex.{WorkerController}
+  alias Rinhex.{LocalBuffer, WorkerController}
 
   @req_len 128
 
@@ -21,8 +21,7 @@ defmodule RinhexWeb.HttpServer do
         read_length: @req_len
       )
 
-    WorkerController.enqueue_payment(raw_body)
-    # LocalBuffer.enqueue(raw_body)
+    LocalBuffer.enqueue(raw_body)
 
     conn
   end

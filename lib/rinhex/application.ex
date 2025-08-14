@@ -38,7 +38,7 @@ defmodule Rinhex.Application do
                 [name: Rinhex.ClusterSupervisor]
               ]
             },
-            # Rinhex.LocalBuffer,
+            Rinhex.LocalBuffer,
             {
               Bandit,
               # http_1_options: [
