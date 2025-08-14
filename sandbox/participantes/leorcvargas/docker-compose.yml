@@ -39,7 +39,7 @@ services:
           memory: "114MB"
     environment:
       APPLICATION_MODE: "api"
-      ERL_MAX_PORTS: 2048
+      ERL_MAX_PORTS: 1024
       PAYMENT_PROCESSOR_DEFAULT_URL: http://payment-processor-default:8080
       PAYMENT_PROCESSOR_FALLBACK_URL: http://payment-processor-fallback:8080
       # ERL_FLAGS: "+S 1:1 +sbwt none +sbwtdcpu none +sbwtdio none +L"
@@ -57,7 +57,7 @@ services:
           memory: "114MB"
     environment:
       APPLICATION_MODE: "api"
-      ERL_MAX_PORTS: 2048
+      ERL_MAX_PORTS: 1024
       PAYMENT_PROCESSOR_DEFAULT_URL: http://payment-processor-default:8080
       PAYMENT_PROCESSOR_FALLBACK_URL: http://payment-processor-fallback:8080
       # ERL_FLAGS: "+S 1:1 +sbwt none +sbwtdcpu none +sbwtdio none +L"
