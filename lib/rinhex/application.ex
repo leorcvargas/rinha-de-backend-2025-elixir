@@ -44,7 +44,7 @@ defmodule Rinhex.Application do
             {
               Bandit,
               http_1_options: [
-                clear_process_dict: true,
+                clear_process_dict: false,
                 gc_every_n_keepalive_requests: 20_000
               ],
               http_options: [compress: false],
