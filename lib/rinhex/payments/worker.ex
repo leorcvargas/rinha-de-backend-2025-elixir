@@ -78,7 +78,6 @@ defmodule Rinhex.Payments.Worker do
   end
 
   defp handle_result({:retry, :service_error, {correlation_id, amount, service}}) do
-    IO.puts("service error")
     Semaphore.report_error(service)
     Queue.self_put({correlation_id, amount})
     :retry
