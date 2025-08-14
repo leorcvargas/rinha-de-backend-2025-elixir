@@ -80,26 +80,26 @@ defmodule Bandit.Compression do
   defp start_stream("gzip", _opts, false), do: {:ok, %__MODULE__{method: :gzip}}
   defp start_stream(_encoding, _opts, _streamable), do: {:error, :unsupported_encoding}
 
-  def compress_chunk(chunk, %__MODULE__{method: :deflate} = context) do
-    result = :zlib.deflate(context.lib_context, chunk, :sync)
-
-    context =
-      context
-      |> Map.update!(:bytes_in, &(&1 + IO.iodata_length(chunk)))
-
-    {result, context}
-  end
-
-  def compress_chunk(chunk, %__MODULE__{method: :gzip, lib_context: nil} = context) do
-    result = :zlib.gzip(chunk)
-
-    context =
-      context
-      |> Map.update!(:bytes_in, &(&1 + IO.iodata_length(chunk)))
-      |> Map.put(:lib_context, :done)
-
-    {result, context}
-  end
+  # def compress_chunk(chunk, %__MODULE__{method: :deflate} = context) do
+  #   result = :zlib.deflate(context.lib_context, chunk, :sync)
+  #
+  #   context =
+  #     context
+  #     |> Map.update!(:bytes_in, &(&1 + IO.iodata_length(chunk)))
+  #
+  #   {result, context}
+  # end
+  #
+  # def compress_chunk(chunk, %__MODULE__{method: :gzip, lib_context: nil} = context) do
+  #   result = :zlib.gzip(chunk)
+  #
+  #   context =
+  #     context
+  #     |> Map.update!(:bytes_in, &(&1 + IO.iodata_length(chunk)))
+  #     |> Map.put(:lib_context, :done)
+  #
+  #   {result, context}
+  # end
 
   def compress_chunk(chunk, %__MODULE__{method: :identity} = context) do
     {chunk, context}
