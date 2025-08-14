@@ -22,20 +22,12 @@ defmodule Bandit.Pipeline do
           {:ok, Bandit.HTTPTransport.t()}
           | {:upgrade, Bandit.HTTPTransport.t(), :websocket, tuple()}
           | {:error, term()}
-  def run(transport, plug, connection_span, conn_data, opts) do
-    measurements = %{monotonic_time: Bandit.Telemetry.monotonic_time()}
-
-    metadata = %{
-      connection_telemetry_span_context: connection_span.telemetry_span_context,
-      plug: plug
-    }
-
+  def run(transport, plug, _connection_span, conn_data, opts) do
     try do
       {:ok, method, request_target, headers, transport} =
         Bandit.HTTPTransport.read_headers(transport)
 
       conn = build_conn!(transport, method, request_target, headers, conn_data, opts)
-      span = Bandit.Telemetry.start_span(:request, measurements, Map.put(metadata, :conn, conn))
 
       try do
         conn
@@ -43,23 +35,20 @@ defmodule Bandit.Pipeline do
         |> maybe_upgrade!()
         |> case do
           {:no_upgrade, conn} ->
-            %Plug.Conn{adapter: {_mod, adapter}} = conn = commit_response!(conn)
-            Bandit.Telemetry.stop_span(span, adapter.metrics, %{conn: conn})
+            %Plug.Conn{adapter: {_mod, adapter}} = commit_response!(conn)
             {:ok, adapter.transport}
 
           {:upgrade, %Plug.Conn{adapter: {_mod, adapter}} = conn, protocol, opts} ->
-            conn = Plug.Conn.put_status(conn, 101)
-            Bandit.Telemetry.stop_span(span, adapter.metrics, %{conn: conn})
+            Plug.Conn.put_status(conn, 101)
             {:upgrade, adapter.transport, protocol, opts}
         end
       catch
         kind, value ->
-          handle_error(kind, value, __STACKTRACE__, transport, span, opts, plug: plug, conn: conn)
+          handle_error(kind, value, __STACKTRACE__, transport, nil, opts, plug: plug, conn: conn)
       end
     rescue
       exception ->
-        span = Bandit.Telemetry.start_span(:request, measurements, metadata)
-        handle_error(:error, exception, __STACKTRACE__, transport, span, opts, plug: plug)
+        handle_error(:error, exception, __STACKTRACE__, transport, nil, opts, plug: plug)
     end
   end
 
