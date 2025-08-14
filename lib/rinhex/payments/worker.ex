@@ -33,13 +33,9 @@ defmodule Rinhex.Payments.Worker do
   defp process(nil), do: :retry
 
   defp process({correlation_id, amount}) do
-    get_best_payment_processor()
+    Semaphore.get_best_service()
     |> call_payment_processor({correlation_id, amount})
     |> handle_result()
-  end
-
-  defp get_best_payment_processor() do
-    Semaphore.get_best_service()
   end
 
   defp call_payment_processor(:none, input), do: {:retry, :no_service, input}
@@ -78,7 +74,6 @@ defmodule Rinhex.Payments.Worker do
   end
 
   defp handle_result({:retry, :service_error, {correlation_id, amount, service}}) do
-    IO.puts("service error")
     Semaphore.report_error(service)
     Queue.self_put({correlation_id, amount})
     :retry

@@ -44,8 +44,6 @@ defmodule Rinhex.Semaphore do
   end
 
   def handle_cast({@event_report_error, service}, state) do
-    Logger.warning("Error on #{service} payment processor")
-
     state =
       case service do
         :default ->
