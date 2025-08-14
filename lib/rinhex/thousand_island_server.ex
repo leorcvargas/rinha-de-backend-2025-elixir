@@ -23,7 +23,7 @@ defmodule Rinhex.ThousandIslandServer do
           ip: {:local, socket_path},
           backlog: 1024,
           nodelay: true,
-          send_timeout: 1_000,
+          send_timeout: 5_000,
           send_timeout_close: true,
           sndbuf: 65536,
           recbuf: 65536
