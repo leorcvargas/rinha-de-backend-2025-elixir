@@ -43,11 +43,11 @@ defmodule Rinhex.Application do
             Rinhex.LocalBuffer,
             {
               Bandit,
-              # http_1_options: [
-              # clear_process_dict: false
-              # gc_every_n_keepalive_requests: 2
-              # gc_every_n_keepalive_requests: 20_000
-              # ],
+              http_1_options: [
+                # clear_process_dict: false
+                gc_every_n_keepalive_requests: 50
+                # gc_every_n_keepalive_requests: 20_000
+              ],
               http_options: [compress: false],
               plug: RinhexWeb.HttpServer,
               scheme: :http,
