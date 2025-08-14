@@ -28,7 +28,7 @@ func NewBackend(socket string) *Backend {
 			Dial: func(addr string) (net.Conn, error) {
 				return net.Dial("unix", socket)
 			},
-			MaxConnsPerHost:     100,
+			MaxConnsPerHost:     550,
 			MaxIdleConnDuration: 10 * time.Second,
 			ReadTimeout:         10 * time.Second,
 			WriteTimeout:        10 * time.Second,
