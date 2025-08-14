@@ -93,7 +93,7 @@ defmodule Rinhex.Application do
   @impl true
   def prep_stop(_) do
     Logger.info("Sleeping before stopping")
-    Process.sleep(3_000)
+    Process.sleep(1_000)
   end
 
   def wait_and_chmod!(path, mode, tries \\ 100, sleep_ms \\ 10) do
