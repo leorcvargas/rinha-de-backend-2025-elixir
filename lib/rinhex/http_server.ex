@@ -12,8 +12,6 @@ defmodule RinhexWeb.HttpServer do
 
   @impl true
   def call(%Plug.Conn{method: "POST", path_info: ["payments"]} = conn, _opts) do
-    conn = send_resp(conn, 204, "")
-
     {:ok, raw_body, conn} =
       read_body(
         conn,
@@ -23,7 +21,7 @@ defmodule RinhexWeb.HttpServer do
 
     LocalBuffer.enqueue(raw_body)
 
-    conn
+    send_resp(conn, 204, "")
   end
 
   def call(%Plug.Conn{method: "GET", path_info: ["payments-summary"]} = conn, _opts) do
