@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"runtime"
 	"sync/atomic"
 	"time"
 
@@ -13,59 +14,74 @@ import (
 
 type Backend struct {
 	socket string
-	client *fasthttp.Client
+	client *fasthttp.HostClient
 }
 
 type LoadBalancer struct {
-	backends []*Backend
+	// api1 and api2
+	backends [2]*Backend
 	counter  uint64
 }
 
-func NewBackend(socket string) *Backend {
+func NewBackend(socket string, maxConns int) *Backend {
 	return &Backend{
 		socket: socket,
-		client: &fasthttp.Client{
+		client: &fasthttp.HostClient{
 			Dial: func(addr string) (net.Conn, error) {
 				return net.Dial("unix", socket)
 			},
-			MaxConnsPerHost:     550,
-			MaxIdleConnDuration: 10 * time.Second,
-			ReadTimeout:         10 * time.Second,
-			WriteTimeout:        10 * time.Second,
+			MaxConns:                      maxConns,
+			MaxConnWaitTimeout:            200 * time.Millisecond,
+			MaxIdleConnDuration:           15 * time.Second,
+			ReadTimeout:                   5 * time.Second,
+			WriteTimeout:                  5 * time.Second,
+			NoDefaultUserAgentHeader:      true,
+			DisableHeaderNamesNormalizing: true,
+			DisablePathNormalizing:        true,
 		},
 	}
 }
 
-func (lb *LoadBalancer) getNextBackend() *Backend {
-	if len(lb.backends) == 0 {
-		return nil
+func (lb *LoadBalancer) next() *Backend {
+	i := atomic.AddUint64(&lb.counter, 1) & 1
+	return lb.backends[i]
+}
+
+func (lb *LoadBalancer) alt(b *Backend) *Backend {
+	if b == lb.backends[0] {
+		return lb.backends[1]
 	}
-	idx := atomic.AddUint64(&lb.counter, 1) % uint64(len(lb.backends))
-	return lb.backends[idx]
+	return lb.backends[0]
 }
 
 func (lb *LoadBalancer) HandleRequest(ctx *fasthttp.RequestCtx) {
-	backend := lb.getNextBackend()
-	if backend == nil {
-		ctx.Error("No backends available", fasthttp.StatusServiceUnavailable)
-		return
-	}
+	b := lb.next()
 
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse(resp)
+	req := &ctx.Request
+	resp := &ctx.Response
 
-	ctx.Request.CopyTo(req)
-
-	err := backend.client.Do(req, resp)
-	if err != nil {
-		log.Printf("Error forwarding request to %s: %v", backend.socket, err)
+	if err := b.client.Do(req, resp); err != nil {
+		other := lb.alt(b)
+		if other != nil {
+			if err2 := other.client.Do(req, resp); err2 == nil {
+				return
+			}
+		}
 		ctx.Error("Backend error", fasthttp.StatusBadGateway)
 		return
 	}
+}
 
-	resp.CopyTo(&ctx.Response)
+func waitForSocket(socket string) {
+	for i := 0; i < 30; i++ {
+		if st, err := os.Stat(socket); err == nil && (st.Mode()&os.ModeSocket) != 0 {
+			log.Printf("Socket %s is ready", socket)
+			return
+		}
+		log.Printf("Waiting for socket %s...", socket)
+		time.Sleep(1 * time.Second)
+	}
+	log.Printf("Warning: Socket %s not found, continuing anyway", socket)
 }
 
 func main() {
@@ -73,43 +89,40 @@ func main() {
 		listenAddr = flag.String("addr", ":80", "Listen address")
 		socket1    = flag.String("socket1", "/tmp/rinhex/api1.sock", "First backend socket")
 		socket2    = flag.String("socket2", "/tmp/rinhex/api2.sock", "Second backend socket")
+
+		// Matching my Bandit num of acceptors
+		maxConns = flag.Int("maxconns", 10, "Max connections per backend")
 	)
 	flag.Parse()
-
-	waitForSocket := func(socket string) {
-		for i := 0; i < 30; i++ {
-			if _, err := os.Stat(socket); err == nil {
-				log.Printf("Socket %s is ready", socket)
-				return
-			}
-			log.Printf("Waiting for socket %s...", socket)
-			time.Sleep(1 * time.Second)
-		}
-		log.Printf("Warning: Socket %s not found, continuing anyway", socket)
-	}
 
 	waitForSocket(*socket1)
 	waitForSocket(*socket2)
 
 	lb := &LoadBalancer{
-		backends: []*Backend{
-			NewBackend(*socket1),
-			NewBackend(*socket2),
+		backends: [2]*Backend{
+			NewBackend(*socket1, *maxConns),
+			NewBackend(*socket2, *maxConns),
 		},
 	}
 
 	server := &fasthttp.Server{
-		Handler:            lb.HandleRequest,
-		MaxConnsPerIP:      1024,
-		MaxRequestsPerConn: 10240,
-		ReadTimeout:        10 * time.Second,
-		WriteTimeout:       10 * time.Second,
-		IdleTimeout:        120 * time.Second,
-		TCPKeepalive:       true,
+		Handler:                       lb.HandleRequest,
+		MaxConnsPerIP:                 0,
+		MaxRequestsPerConn:            0,
+		ReadTimeout:                   5 * time.Second,
+		WriteTimeout:                  5 * time.Second,
+		IdleTimeout:                   120 * time.Second,
+		TCPKeepalive:                  true,
+		NoDefaultServerHeader:         true,
+		NoDefaultContentType:          true,
+		ReduceMemoryUsage:             true,
+		DisableHeaderNamesNormalizing: true,
+		ReadBufferSize:                1024,
+		WriteBufferSize:               1024,
 	}
 
-	log.Printf("Load balancer starting on %s", *listenAddr)
-	log.Printf("Backends: %s, %s", *socket1, *socket2)
+	log.Printf("LB on %s (GOMAXPROCS=%d)", *listenAddr, runtime.GOMAXPROCS(0))
+	log.Printf("Backends: %s, %s (maxconns=%d)", *socket1, *socket2, *maxConns)
 
 	if err := server.ListenAndServe(*listenAddr); err != nil {
 		log.Fatalf("Error starting server: %v", err)
