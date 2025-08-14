@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - master
+      - stable
   pull_request:
     branches:
       - main
       - master
+      - stable
   release:
     types: [published]
 
