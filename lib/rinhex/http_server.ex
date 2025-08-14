@@ -59,7 +59,7 @@ defmodule Rinhex.HttpServer do
       {:ifaddr, {:local, socket_path}},
       {:packet, :raw},
       {:active, false},
-      {:backlog, 1024},
+      {:backlog, 1024 * 64},
       {:exit_on_close, false}
     ]
 
