@@ -226,15 +226,7 @@ defmodule Bandit.Adapter do
         do: Bandit.HTTPTransport.send_data(adapter.transport, data, end_request),
         else: adapter.transport
 
-    data_size = IO.iodata_length(data)
-    metrics = Map.update(adapter.metrics, :resp_body_bytes, data_size, &(&1 + data_size))
-
-    metrics =
-      if end_request,
-        do: Map.put(metrics, :resp_end_time, Bandit.Telemetry.monotonic_time()),
-        else: metrics
-
-    %{adapter | transport: socket, metrics: metrics}
+    %{adapter | transport: socket, metrics: %{}}
   end
 
   defp send_resp_body?(%{method: "HEAD"}), do: false
