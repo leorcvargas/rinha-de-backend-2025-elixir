@@ -54,55 +54,22 @@ func (lb *LoadBalancer) alt(b *Backend) *Backend {
 	return lb.backends[0]
 }
 
-// func (lb *LoadBalancer) HandleRequest(ctx *fasthttp.RequestCtx) {
-// 	b := lb.next()
-//
-// 	req := &ctx.Request
-// 	resp := &ctx.Response
-//
-// 	if err := b.client.Do(req, resp); err != nil {
-// 		other := lb.alt(b)
-// 		if other != nil {
-// 			if err2 := other.client.Do(req, resp); err2 == nil {
-// 				return
-// 			}
-// 		}
-// 		ctx.Error("Backend error", fasthttp.StatusBadGateway)
-// 		return
-// 	}
-// }
-
 func (lb *LoadBalancer) HandleRequest(ctx *fasthttp.RequestCtx) {
-	backend := lb.next()
-	if backend == nil {
-		ctx.Error("No backends available", fasthttp.StatusServiceUnavailable)
-		return
-	}
+	b := lb.next()
 
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-	defer func() {
-		fasthttp.ReleaseRequest(req)
-		fasthttp.ReleaseResponse(resp)
-	}()
+	req := &ctx.Request
+	resp := &ctx.Response
 
-	ctx.Request.Header.CopyTo(&req.Header)
-	req.SetBodyRaw(ctx.Request.Body())
-	req.SetRequestURIBytes(ctx.Request.URI().FullURI())
-	req.SetHost("localhost")
-
-	if err := backend.client.Do(req, resp); err != nil {
-		ctx.Logger().Printf("Error forwarding request to %s: %v", backend.socket, err)
+	if err := b.client.Do(req, resp); err != nil {
+		other := lb.alt(b)
+		if other != nil {
+			if err2 := other.client.Do(req, resp); err2 == nil {
+				return
+			}
+		}
 		ctx.Error("Backend error", fasthttp.StatusBadGateway)
 		return
 	}
-
-	// Copy status code, headers, and set body by reference (zero-copy)
-	ctx.SetStatusCode(resp.StatusCode())
-	resp.Header.CopyTo(&ctx.Response.Header)
-
-	ctx.Response.SetBodyRaw(resp.Body())
-	// ctx.SetBodyRaw(resp.Body())
 }
 
 func waitForSocket(socket string) {
