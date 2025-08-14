@@ -1,6 +1,5 @@
 defmodule Rinhex.ThousandIslandHandler do
   use ThousandIsland.Handler
-
   alias Rinhex.{LocalBuffer, WorkerController}
 
   @http_204 "HTTP/1.1 204 No Content\r\n\r\n"
@@ -9,8 +8,8 @@ defmodule Rinhex.ThousandIslandHandler do
   @http_404 "HTTP/1.1 404 Not Found\r\n\r\n"
   @http_503 "HTTP/1.1 503 Service Unavailable\r\n\r\n"
 
-  @recv_timeout 500
-  @max_requests_per_connection 10
+  @recv_timeout 30_000
+  @max_requests_per_connection 1000
 
   @impl ThousandIsland.Handler
   def handle_connection(socket, state) do
@@ -28,7 +27,7 @@ defmodule Rinhex.ThousandIslandHandler do
 
         case ThousandIsland.Socket.send(socket, response) do
           :ok ->
-            if should_keep_alive?(data) and count < @max_requests_per_connection - 1 do
+            if should_keep_alive?(data) do
               handle_requests(socket, state, count + 1)
             else
               {:close, state}
@@ -63,7 +62,10 @@ defmodule Rinhex.ThousandIslandHandler do
     try do
       do_route_request(data)
     rescue
-      _ -> @http_503
+      error ->
+        IO.inspect(error, label: "Route error")
+        IO.inspect(data, label: "Request data")
+        @http_503
     end
   end
 
@@ -82,9 +84,8 @@ defmodule Rinhex.ThousandIslandHandler do
   defp do_route_request(<<"GET /payments-summary", rest::binary>>) do
     {from, to} = parse_query_params(rest)
 
-    case :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [from, to], 1_000) do
+    case :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [from, to], 20_000) do
       {:badrpc, _} ->
-        # Worker is down, return empty summary
         empty_summary =
           Jason.encode!(%{
             "default" => %{"totalRequests" => 0, "totalAmount" => 0.0},
