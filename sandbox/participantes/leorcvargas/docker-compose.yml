@@ -42,7 +42,7 @@ services:
       ERL_MAX_PORTS: 1024
       PAYMENT_PROCESSOR_DEFAULT_URL: http://payment-processor-default:8080
       PAYMENT_PROCESSOR_FALLBACK_URL: http://payment-processor-fallback:8080
-      # ERL_FLAGS: "+S 1:1 +sbwt none +sbwtdcpu none +sbwtdio none +L"
+      ERL_FLAGS: "+S 1:1 +sbwt none +sbwtdcpu none +sbwtdio none +L"
       UDS_SOCKET: "/tmp/rinhex/api1.sock"
       ERLANG_COOKIE: rinhex
       RELEASE_COOKIE: rinhex
@@ -60,7 +60,7 @@ services:
       ERL_MAX_PORTS: 1024
       PAYMENT_PROCESSOR_DEFAULT_URL: http://payment-processor-default:8080
       PAYMENT_PROCESSOR_FALLBACK_URL: http://payment-processor-fallback:8080
-      # ERL_FLAGS: "+S 1:1 +sbwt none +sbwtdcpu none +sbwtdio none +L"
+      ERL_FLAGS: "+S 1:1 +sbwt none +sbwtdcpu none +sbwtdio none +L"
       UDS_SOCKET: "/tmp/rinhex/api2.sock"
       ERLANG_COOKIE: rinhex
       RELEASE_COOKIE: rinhex
@@ -81,7 +81,7 @@ services:
       ERL_MAX_PORTS: 2048
       PAYMENT_PROCESSOR_DEFAULT_URL: http://payment-processor-default:8080
       PAYMENT_PROCESSOR_FALLBACK_URL: http://payment-processor-fallback:8080
-      # ERL_FLAGS: "+S 1:1 +sbwt none +sbwtdcpu none +sbwtdio none +L"
+      ERL_FLAGS: "+S 1:1 +sbwt none +sbwtdcpu none +sbwtdio none +L"
       ERLANG_COOKIE: rinhex
       RELEASE_COOKIE: rinhex
 
