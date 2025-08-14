@@ -24,11 +24,9 @@ defmodule Rinhex.Payments.Worker do
   def handle_info(@event_tick, state) do
     item = Queue.take()
 
-    if item != nil do
-      Task.start(fn ->
-        process(item)
-      end)
-    end
+    Task.start(fn ->
+      process(item)
+    end)
 
     schedule_tick()
 
