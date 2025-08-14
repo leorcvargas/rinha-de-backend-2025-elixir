@@ -38,6 +38,8 @@ func NewBackend(socket string, maxConns int) *Backend {
 			NoDefaultUserAgentHeader:      true,
 			DisableHeaderNamesNormalizing: true,
 			DisablePathNormalizing:        true,
+			WriteBufferSize:               512,
+			ReadBufferSize:                512,
 		},
 	}
 }
@@ -91,7 +93,7 @@ func main() {
 		socket2    = flag.String("socket2", "/tmp/rinhex/api2.sock", "Second backend socket")
 
 		// Matching my Bandit num of acceptors
-		maxConns = flag.Int("maxconns", 3, "Max connections per backend")
+		maxConns = flag.Int("maxconns", 4, "Max connections per backend")
 	)
 	flag.Parse()
 

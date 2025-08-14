@@ -53,7 +53,7 @@ defmodule Rinhex.Application do
               ip: {:local, socket_path},
               port: 0,
               thousand_island_options: [
-                num_acceptors: 3
+                num_acceptors: 4
                 # num_connections: 1024 * 8
               ]
             },
