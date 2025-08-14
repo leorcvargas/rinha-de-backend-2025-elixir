@@ -19,5 +19,5 @@ defmodule Rinhex.Payments.WorkerSupervisor do
     )
   end
 
-  defp get_num_workers, do: 1
+  defp get_num_workers, do: 2
 end
