@@ -104,8 +104,8 @@ func main() {
 
 	server := &fasthttp.Server{
 		Handler:            lb.HandleRequest,
-		MaxConnsPerIP:      500,
-		MaxRequestsPerConn: 500,
+		MaxConnsPerIP:      1024,
+		MaxRequestsPerConn: 10240,
 		ReadTimeout:        10 * time.Second,
 		WriteTimeout:       10 * time.Second,
 		IdleTimeout:        120 * time.Second,
