@@ -6,7 +6,7 @@ COPY . .
 
 RUN go get
 
-RUN GOOS=linux go build -a -o loadbalancer .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -a -o loadbalancer .
 
 FROM docker.io/debian:bookworm-20250721-slim
 
