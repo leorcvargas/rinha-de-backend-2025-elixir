@@ -26,11 +26,7 @@ defmodule Bandit.HTTP1.Handler do
       gc_every_n_requests = Keyword.get(state.opts.http_1, :gc_every_n_keepalive_requests, 5)
 
       if rem(requests_processed, gc_every_n_requests) == 0 do
-        start_t = System.monotonic_time()
         :erlang.garbage_collect()
-        end_t = System.monotonic_time()
-
-        IO.puts("GC took #{end_t - start_t}us")
       end
 
       state = Map.put(state, :requests_processed, requests_processed)
