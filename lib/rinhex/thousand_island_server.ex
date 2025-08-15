@@ -28,7 +28,7 @@ defmodule Rinhex.ThousandIslandServer do
           sndbuf: 65536,
           recbuf: 65536
         ],
-        num_acceptors: 1,
+        num_acceptors: 10,
         num_connections: 100,
         max_connections_retry_count: 0,
         max_connections_retry_wait: 0,
