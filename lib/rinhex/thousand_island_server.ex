@@ -25,8 +25,8 @@ defmodule Rinhex.ThousandIslandServer do
           nodelay: true,
           send_timeout: 5_000,
           send_timeout_close: true,
-          sndbuf: 65536,
-          recbuf: 65536
+          sndbuf: 4096,
+          recbuf: 4096
         ],
         num_acceptors: 10,
         num_connections: 550,
