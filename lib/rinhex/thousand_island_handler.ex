@@ -19,7 +19,7 @@ defmodule Rinhex.ThousandIslandHandler do
   @http_404 "HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n"
 
   @recv_timeout 30_000
-  @max_requests_per_connection 10_000
+  @max_requests_per_connection 20_000
 
   @impl ThousandIsland.Handler
   def handle_connection(socket, state) do
