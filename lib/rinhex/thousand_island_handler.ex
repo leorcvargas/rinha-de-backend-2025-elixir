@@ -2,6 +2,14 @@ defmodule Rinhex.ThousandIslandHandler do
   use ThousandIsland.Handler
   alias Rinhex.{LocalBuffer, WorkerController}
 
+  @post_payments_pattern "POST /payments HTTP/1."
+  @get_summary_pattern "GET /payments-summary"
+  @get_ping_pattern "GET /ping HTTP/1."
+  @body_separator "\r\n\r\n"
+  @http_separator " HTTP/"
+  @query_separator "?"
+  @param_separator "&"
+  @value_separator "="
   @http_204_keepalive "HTTP/1.1 204 No Content\r\nConnection: keep-alive\r\n\r\n"
   @http_204_close "HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n"
   @http_200_json_keepalive "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: keep-alive\r\n"
@@ -48,42 +56,48 @@ defmodule Rinhex.ThousandIslandHandler do
     end
   end
 
-  defp do_route_request(<<"POST /payments HTTP/1.", _::binary>> = request, keep_alive) do
-    case extract_body(request) do
-      {:ok, body} ->
-        LocalBuffer.enqueue(body)
+  defp do_route_request(request, keep_alive) do
+    case request do
+      <<@post_payments_pattern, _::binary>> ->
+        case extract_body(request) do
+          {:ok, body} ->
+            LocalBuffer.enqueue(body)
+
+          _ ->
+            :ok
+        end
+
+        if keep_alive, do: @http_204_keepalive, else: @http_204_close
+
+      <<@get_summary_pattern, rest::binary>> ->
+        {from, to} = parse_query_params(rest)
+
+        case :erpc.call(
+               :rinhex@worker,
+               WorkerController,
+               :get_payments_summary,
+               [from, to],
+               20_000
+             ) do
+          {:badrpc, _} ->
+            empty_summary =
+              Jason.encode!(%{
+                "default" => %{"totalRequests" => 0, "totalAmount" => 0.0},
+                "fallback" => %{"totalRequests" => 0, "totalAmount" => 0.0}
+              })
+
+            build_json_response(empty_summary, keep_alive)
+
+          summary_json when is_binary(summary_json) or is_list(summary_json) ->
+            build_json_response(summary_json, keep_alive)
+        end
+
+      <<@get_ping_pattern, _::binary>> ->
+        if keep_alive, do: @http_200_keepalive, else: @http_200_close
 
       _ ->
-        :ok
+        @http_404
     end
-
-    if keep_alive, do: @http_204_keepalive, else: @http_204_close
-  end
-
-  defp do_route_request(<<"GET /payments-summary", rest::binary>>, keep_alive) do
-    {from, to} = parse_query_params(rest)
-
-    case :erpc.call(:rinhex@worker, WorkerController, :get_payments_summary, [from, to], 20_000) do
-      {:badrpc, _} ->
-        empty_summary =
-          Jason.encode!(%{
-            "default" => %{"totalRequests" => 0, "totalAmount" => 0.0},
-            "fallback" => %{"totalRequests" => 0, "totalAmount" => 0.0}
-          })
-
-        build_json_response(empty_summary, keep_alive)
-
-      summary_json when is_binary(summary_json) or is_list(summary_json) ->
-        build_json_response(summary_json, keep_alive)
-    end
-  end
-
-  defp do_route_request(<<"GET /ping HTTP/1.", _::binary>>, keep_alive) do
-    if keep_alive, do: @http_200_keepalive, else: @http_200_close
-  end
-
-  defp do_route_request(_, _keep_alive) do
-    @http_404
   end
 
   defp build_json_response(json_data, keep_alive) do
@@ -94,7 +108,7 @@ defmodule Rinhex.ThousandIslandHandler do
 
   @compile {:inline, extract_body: 1}
   defp extract_body(request) do
-    case :binary.split(request, <<"\r\n\r\n">>, [:global]) do
+    case :binary.split(request, @body_separator, [:global]) do
       [_headers, body | _] when byte_size(body) > 0 ->
         {:ok, body}
 
@@ -106,18 +120,18 @@ defmodule Rinhex.ThousandIslandHandler do
   defp parse_query_params(rest) do
     try do
       case rest do
-        <<"?", query_rest::binary>> ->
+        <<@query_separator, query_rest::binary>> ->
           query =
-            case :binary.split(query_rest, " HTTP/") do
+            case :binary.split(query_rest, @http_separator) do
               [q, _] -> q
               _ -> ""
             end
 
           params =
             query
-            |> String.split("&")
+            |> String.split(@param_separator)
             |> Enum.reduce(%{}, fn pair, acc ->
-              case String.split(pair, "=", parts: 2) do
+              case String.split(pair, @value_separator, parts: 2) do
                 [key, value] -> Map.put(acc, key, URI.decode(value))
                 _ -> acc
               end
