@@ -15,6 +15,9 @@ defmodule Rinhex.LocalBuffer do
   end
 
   def init(_state) do
+    Process.flag(:min_heap_size, 2048)
+    Process.flag(:min_bin_vheap_size, 4096)
+
     :ets.new(@table, [
       :named_table,
       :public,
