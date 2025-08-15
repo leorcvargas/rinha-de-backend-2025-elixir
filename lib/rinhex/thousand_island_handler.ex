@@ -12,7 +12,7 @@ defmodule Rinhex.ThousandIslandHandler do
   @http_503 "HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n"
 
   @recv_timeout 30_000
-  @max_requests_per_connection 1000
+  @max_requests_per_connection 10_000
 
   @impl ThousandIsland.Handler
   def handle_connection(socket, state) do
@@ -76,7 +76,9 @@ defmodule Rinhex.ThousandIslandHandler do
   defp do_route_request(<<"POST /payments HTTP/1.", _::binary>> = request, keep_alive) do
     case extract_body(request) do
       {:ok, body} ->
-        LocalBuffer.enqueue(body)
+        Task.start(fn ->
+          LocalBuffer.enqueue(body)
+        end)
 
       _ ->
         :ok
