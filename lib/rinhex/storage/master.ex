@@ -13,7 +13,7 @@ defmodule Rinhex.Storage.Master do
         :named_table,
         :ordered_set,
         :public,
-        read_concurrency: :auto,
+        read_concurrency: true,
         write_concurrency: :auto
       ])
 
