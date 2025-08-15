@@ -4,7 +4,7 @@ defmodule Rinhex.LocalBuffer do
 
   @table :payment_buffer
 
-  @flush_interval 100
+  @flush_interval 10
   @dummy_key 0
 
   def start_link(state \\ []) do
@@ -12,6 +12,9 @@ defmodule Rinhex.LocalBuffer do
   end
 
   def init(_state) do
+    Process.flag(:min_heap_size, 2048)
+    Process.flag(:min_bin_vheap_size, 4096)
+
     :ets.new(@table, [
       :named_table,
       :public,

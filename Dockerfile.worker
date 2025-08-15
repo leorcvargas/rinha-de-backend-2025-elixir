@@ -21,7 +21,6 @@ ENV MIX_ENV=prod
 
 # Deps & compilation
 COPY mix.exs mix.lock ./
-COPY bandido bandido
 RUN mix deps.get --only $MIX_ENV
 RUN mkdir config
 
