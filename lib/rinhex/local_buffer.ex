@@ -4,7 +4,7 @@ defmodule Rinhex.LocalBuffer do
 
   @table :payment_buffer
 
-  @flush_interval 100
+  @flush_interval 2
   @dummy_key 0
 
   def start_link(state \\ []) do
@@ -26,10 +26,26 @@ defmodule Rinhex.LocalBuffer do
   @compile {:inline, enqueue: 1}
   def enqueue(raw_body) do
     :ets.insert(@table, {@dummy_key, raw_body})
+
+    if :ets.info(@table, :size) > 50 do
+      GenServer.cast(__MODULE__, :force_flush)
+    end
+
     :ok
   end
 
   def handle_info(:flush, state) do
+    flush_buffer()
+    Process.send_after(self(), :flush, @flush_interval)
+    {:noreply, state}
+  end
+
+  def handle_cast(:force_flush, state) do
+    flush_buffer()
+    {:noreply, state}
+  end
+
+  defp flush_buffer do
     case :ets.take(@table, @dummy_key) do
       [] ->
         :ok
@@ -39,9 +55,5 @@ defmodule Rinhex.LocalBuffer do
         |> Enum.map(&elem(&1, 1))
         |> WorkerController.batch_enqueue_payments()
     end
-
-    Process.send_after(self(), :flush, @flush_interval)
-
-    {:noreply, state}
   end
 end

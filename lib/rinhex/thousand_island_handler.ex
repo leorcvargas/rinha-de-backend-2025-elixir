@@ -51,11 +51,11 @@ defmodule Rinhex.ThousandIslandHandler do
 
   defp should_keep_alive?(request) do
     cond do
-      String.contains?(request, " HTTP/1.0") ->
-        String.contains?(request, "Connection: keep-alive")
+      match?({_, _}, :binary.match(request, <<" HTTP/1.0">>)) ->
+        match?({_, _}, :binary.match(request, <<"Connection: keep-alive">>))
 
-      String.contains?(request, " HTTP/1.1") ->
-        not String.contains?(request, "Connection: close")
+      match?({_, _}, :binary.match(request, <<" HTTP/1.1">>)) ->
+        not match?({_, _}, :binary.match(request, <<"Connection: close">>))
 
       true ->
         false
@@ -117,9 +117,10 @@ defmodule Rinhex.ThousandIslandHandler do
     [header, "Content-Length: ", Integer.to_string(content_length), "\r\n\r\n", json_data]
   end
 
+  @compile {:inline, extract_body: 1}
   defp extract_body(request) do
-    case :binary.split(request, <<"\r\n\r\n">>) do
-      [_headers, body] when byte_size(body) > 0 ->
+    case :binary.split(request, <<"\r\n\r\n">>, [:global]) do
+      [_headers, body | _] when byte_size(body) > 0 ->
         {:ok, body}
 
       _ ->
