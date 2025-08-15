@@ -23,6 +23,9 @@ defmodule Rinhex.ThousandIslandHandler do
 
   @impl ThousandIsland.Handler
   def handle_connection(socket, state) do
+    Process.flag(:min_heap_size, 2048)
+    Process.flag(:min_bin_vheap_size, 4096)
+
     handle_requests(socket, state, 0)
   end
 
