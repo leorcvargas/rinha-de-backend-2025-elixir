@@ -76,9 +76,7 @@ defmodule Rinhex.ThousandIslandHandler do
   defp do_route_request(<<"POST /payments HTTP/1.", _::binary>> = request, keep_alive) do
     case extract_body(request) do
       {:ok, body} ->
-        Task.start(fn ->
-          LocalBuffer.enqueue(body)
-        end)
+        LocalBuffer.enqueue(body)
 
       _ ->
         :ok
