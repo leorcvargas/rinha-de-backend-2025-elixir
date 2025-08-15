@@ -21,7 +21,7 @@ import Big from "https://cdn.jsdelivr.net/npm/big.js@7.0.1/big.min.js";
 const MAX_REQUESTS = __ENV.MAX_REQUESTS ?? 500;
 
 export const options = {
-  summaryTrendStats: ["p(99)", "count"],
+  summaryTrendStats: ["avg", "p(99)", "count"],
   thresholds: {
     //http_req_failed: [{ threshold: "rate < 0.01", abortOnFail: false }],
     //payments_inconsistency: ["count == 0"]
@@ -313,6 +313,11 @@ export function handleSummary(data) {
   )
     .round(2)
     .toNumber();
+  const avg_latency = new Big(
+    data.metrics["http_req_duration{expected_response:true}"].values["avg"],
+  )
+    .round(2)
+    .toNumber();
   const p_99_bonus = Math.max(
     new Big((11 - p_99) * 0.02).round(2).toNumber(),
     0,
@@ -347,9 +352,10 @@ export function handleSummary(data) {
     total_taxas: total_fee,
     descricao:
       "'total_liquido' é sua pontuação final. Equivale ao seu lucro. Fórmula: total_liquido + (total_liquido * p99.bonus) - (total_liquido * multa.porcentagem)",
-    p99: {
-      valor: `${p_99}ms`,
-      bonus: `${new Big(p_99_bonus).times(100)}%`,
+    latencia: {
+      p99: `${p_99}ms`,
+      avg: `${avg_latency}ms`,
+      p99_bonus: `${new Big(p_99_bonus).times(100)}%`,
       max_requests: MAX_REQUESTS,
       descricao: "Fórmula para o bônus: max((11 - p99.valor) * 0.02, 0)",
     },
