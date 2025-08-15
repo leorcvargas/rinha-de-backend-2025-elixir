@@ -4,7 +4,7 @@ defmodule Rinhex.LocalBuffer do
 
   @table :payment_buffer
 
-  @flush_interval 2
+  @flush_interval 1
   @dummy_key 0
 
   def start_link(state \\ []) do
@@ -16,7 +16,7 @@ defmodule Rinhex.LocalBuffer do
       :named_table,
       :public,
       :duplicate_bag,
-      {:write_concurrency, true}
+      {:write_concurrency, :auto}
     ])
 
     Process.send_after(self(), :flush, @flush_interval)
@@ -27,21 +27,12 @@ defmodule Rinhex.LocalBuffer do
   def enqueue(raw_body) do
     :ets.insert(@table, {@dummy_key, raw_body})
 
-    if :ets.info(@table, :size) > 50 do
-      GenServer.cast(__MODULE__, :force_flush)
-    end
-
     :ok
   end
 
   def handle_info(:flush, state) do
     flush_buffer()
     Process.send_after(self(), :flush, @flush_interval)
-    {:noreply, state}
-  end
-
-  def handle_cast(:force_flush, state) do
-    flush_buffer()
     {:noreply, state}
   end
 
