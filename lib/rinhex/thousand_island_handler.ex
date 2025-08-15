@@ -26,7 +26,7 @@ defmodule Rinhex.ThousandIslandHandler do
   defp handle_requests(socket, state, count) do
     case ThousandIsland.Socket.recv(socket, 0, @recv_timeout) do
       {:ok, data} ->
-        keep_alive = should_keep_alive?(data) and count < @max_requests_per_connection - 1
+        keep_alive = count < @max_requests_per_connection - 1
         response = route_request(data, keep_alive)
 
         case ThousandIsland.Socket.send(socket, response) do
@@ -46,19 +46,6 @@ defmodule Rinhex.ThousandIslandHandler do
 
       {:error, _} ->
         {:close, state}
-    end
-  end
-
-  defp should_keep_alive?(request) do
-    cond do
-      match?({_, _}, :binary.match(request, <<" HTTP/1.0">>)) ->
-        match?({_, _}, :binary.match(request, <<"Connection: keep-alive">>))
-
-      match?({_, _}, :binary.match(request, <<" HTTP/1.1">>)) ->
-        not match?({_, _}, :binary.match(request, <<"Connection: close">>))
-
-      true ->
-        false
     end
   end
 
