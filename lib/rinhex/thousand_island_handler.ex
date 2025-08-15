@@ -106,7 +106,7 @@ defmodule Rinhex.ThousandIslandHandler do
   defp build_json_response(json_data, keep_alive) do
     content_length = IO.iodata_length(json_data)
     header = if keep_alive, do: @http_200_json_keepalive, else: @http_200_json_close
-    [header, "Content-Length: ", Integer.to_string(content_length), "\r\n\r\n", json_data]
+    [header, "Content-Length: ", Integer.to_string(content_length), @body_separator, json_data]
   end
 
   @compile {:inline, extract_body: 1}
