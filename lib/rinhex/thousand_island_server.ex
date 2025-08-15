@@ -21,7 +21,7 @@ defmodule Rinhex.ThousandIslandServer do
         transport_module: ThousandIsland.Transports.TCP,
         transport_options: [
           ip: {:local, socket_path},
-          backlog: 1024,
+          backlog: 65535,
           nodelay: true,
           send_timeout: 5_000,
           send_timeout_close: true,
