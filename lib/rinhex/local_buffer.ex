@@ -19,7 +19,8 @@ defmodule Rinhex.LocalBuffer do
       :named_table,
       :public,
       :duplicate_bag,
-      {:write_concurrency, :auto}
+      {:write_concurrency, false},
+      {:read_concurrency, false}
     ])
 
     Process.send_after(self(), :flush, @min_flush_interval)
