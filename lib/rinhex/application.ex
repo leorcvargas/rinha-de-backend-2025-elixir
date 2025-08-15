@@ -41,7 +41,7 @@ defmodule Rinhex.Application do
               ]
             },
             Rinhex.LocalBuffer,
-            Rinhex.RawTcpServer,
+            Rinhex.ThousandIslandServer,
             {Task, fn -> wait_and_chmod!(socket_path, 0o777) end}
           ]
 
