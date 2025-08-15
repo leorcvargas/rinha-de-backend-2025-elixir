@@ -59,7 +59,7 @@ services:
       resources:
         limits:
           cpus: "0.23"
-          memory: "76MB"
+          # memory: "76MB"
     environment:
       APPLICATION_MODE: "api"
       ERL_MAX_PORTS: 1024
@@ -75,7 +75,7 @@ services:
       resources:
         limits:
           cpus: "0.23"
-          memory: "76MB"
+          # memory: "76MB"
     environment:
       APPLICATION_MODE: "api"
       ERL_MAX_PORTS: 1024
@@ -91,7 +91,7 @@ services:
       resources:
         limits:
           cpus: "0.23"
-          memory: "76MB"
+          # memory: "76MB"
     environment:
       APPLICATION_MODE: "api"
       ERL_MAX_PORTS: 1024
