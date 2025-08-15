@@ -3,6 +3,7 @@ defmodule Rinhex.Storage.Reader do
   use GenServer
 
   @table :rinhex_boring_storage
+  @summary_sleep_ms 500
   @empty_summary %{
     default: %{total_requests: 0, total_amount: 0.0},
     fallback: %{total_requests: 0, total_amount: 0.0}
@@ -22,7 +23,7 @@ defmodule Rinhex.Storage.Reader do
 
     task =
       Task.async(fn ->
-        Process.sleep(1_000)
+        Process.sleep(@summary_sleep_ms)
 
         query_by_date(from, to)
         |> aggregate_summary()
