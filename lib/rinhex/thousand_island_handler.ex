@@ -9,7 +9,6 @@ defmodule Rinhex.ThousandIslandHandler do
   @http_200_keepalive "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 4\r\n\r\npong"
   @http_200_close "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Length: 4\r\n\r\npong"
   @http_404 "HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n"
-  @http_503 "HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n"
 
   @recv_timeout 30_000
   @max_requests_per_connection 10_000
@@ -27,7 +26,7 @@ defmodule Rinhex.ThousandIslandHandler do
     case ThousandIsland.Socket.recv(socket, 0, @recv_timeout) do
       {:ok, data} ->
         keep_alive = count < @max_requests_per_connection - 1
-        response = route_request(data, keep_alive)
+        response = do_route_request(data, keep_alive)
 
         case ThousandIsland.Socket.send(socket, response) do
           :ok ->
@@ -46,17 +45,6 @@ defmodule Rinhex.ThousandIslandHandler do
 
       {:error, _} ->
         {:close, state}
-    end
-  end
-
-  defp route_request(data, keep_alive) do
-    try do
-      do_route_request(data, keep_alive)
-    rescue
-      error ->
-        IO.inspect(error, label: "Route error")
-        IO.inspect(data, label: "Request data")
-        @http_503
     end
   end
 
