@@ -21,8 +21,8 @@ defmodule Rinhex.Semaphore do
 
   # NOTE: I can always return :default here and never lag a payment,
   # but I think this is kinda lame
-  def get_best_service(), do: :default
-  # def get_best_service(), do: GenServer.call(__MODULE__, @event_get_best_service)
+  # def get_best_service(), do: :default
+  def get_best_service(), do: GenServer.call(__MODULE__, @event_get_best_service)
 
   def set_best_service(best_service),
     do: GenServer.cast(__MODULE__, {@event_set_best_service, best_service})
@@ -44,8 +44,6 @@ defmodule Rinhex.Semaphore do
   end
 
   def handle_cast({@event_report_error, service}, state) do
-    Logger.warning("Error on #{service} payment processor")
-
     state =
       case service do
         :default ->
